@@ -30,7 +30,7 @@ module.exports = async (req, res) => {
     });
 
     const data = await response.json();
-    const coaching = data.choices[0].message.content;
+    const coaching = data.choices[0].message.content.replace(/[\u2028\u2029]/g, ' ');
 
     res.status(200).json({ coaching });
   } catch (err) {
