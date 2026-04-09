@@ -14,7 +14,7 @@ module.exports = async (req, res) => {
       "2. One specific thing to fix based on my weakest habit. " +
       "3. One thing to protect that is already working. " +
       "4. One sentence connecting my habits to my goal of building an AI consulting firm. " +
-      "Keep it under 100 words. Be direct, not cheesy.";
+      "Keep it under 100 words. Be direct, not cheesy. Use only plain ASCII characters, no special unicode.";
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -30,11 +30,17 @@ module.exports = async (req, res) => {
     });
 
     const data = await response.json();
-    const coaching = data.choices[0].message.content.replace(/[\u2028\u2029]/g, ' ');
+    
+    if (!data.choices || !data.choices[0]) {
+      return res.status(500).json({ error: 'No response from AI' });
+    }
 
-    res.status(200).json({ coaching });
+    const raw = data.choices[0].message.content;
+    const clean = raw.replace(/[^\x00-\x7F]/g, ' ').trim();
+
+    return res.status(200).json({ coaching: clean });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: err.message });
+    return res.status(500).json({ error: err.message });
   }
 };
