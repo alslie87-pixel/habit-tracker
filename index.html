@@ -65,7 +65,12 @@
         <div id="streak-count" class="text-[3.5rem] leading-none font-semibold text-white mb-1">0</div>
         <div class="uppercase text-emerald-400 text-lg font-medium tracking-[1px]">day streak</div>
       </div>
-
+<!-- Daily Wisdom -->
+      <div class="card bg-zinc-900 border border-zinc-800 rounded-3xl p-6 mb-5 text-center">
+        <div class="text-[9px] uppercase tracking-widest text-zinc-500 mb-3">Daily wisdom</div>
+        <div id="daily-quote" class="text-sm text-zinc-300 italic leading-relaxed"></div>
+        <div id="daily-quote-author" class="text-[11px] text-zinc-500 mt-2"></div>
+      </div>
       <!-- Progress: Building -->
       <div id="focus-building" class="card bg-zinc-900 border border-emerald-400/20 rounded-3xl p-6 mb-3">
         <div class="flex justify-between items-center mb-3">
@@ -186,11 +191,54 @@
 
   <script>
     let appData = null;
+    const dailyQuotes = [
+      {text: "We are what we repeatedly do. Excellence is not an act, but a habit.", author: "Will Durant"},
+      {text: "Discipline is choosing between what you want now and what you want most.", author: "Abraham Lincoln"},
+      {text: "You do not rise to the level of your goals. You fall to the level of your systems.", author: "James Clear"},
+      {text: "The secret of your future is hidden in your daily routine.", author: "Mike Murdock"},
+      {text: "Success is the sum of small efforts repeated day in and day out.", author: "Robert Collier"},
+      {text: "Motivation gets you going, but discipline keeps you growing.", author: "John C. Maxwell"},
+      {text: "Every action you take is a vote for the type of person you wish to become.", author: "James Clear"},
+      {text: "A year from now you will wish you had started today.", author: "Karen Lamb"},
+      {text: "It's not about being the best. It's about being better than you were yesterday.", author: "Unknown"},
+      {text: "Suffer the pain of discipline or suffer the pain of regret.", author: "Jim Rohn"},
+      {text: "Your habits will determine your future.", author: "Jack Canfield"},
+      {text: "Don't count the days. Make the days count.", author: "Muhammad Ali"},
+      {text: "Be patient with yourself. You are growing stronger every day.", author: "Robert Tew"},
+      {text: "Habits are the compound interest of self-improvement.", author: "James Clear"},
+      {text: "You will never change your life until you change something you do daily.", author: "John C. Maxwell"},
+      {text: "Do something today that your future self will thank you for.", author: "Sean Patrick Flanery"},
+      {text: "Fall seven times, stand up eight.", author: "Japanese proverb"},
+      {text: "The pain you feel today will be the strength you feel tomorrow.", author: "Unknown"},
+      {text: "Stop being afraid of what could go wrong and focus on what could go right.", author: "Unknown"},
+      {text: "Stay committed to your decisions, but stay flexible in your approach.", author: "Tony Robbins"},
+      {text: "Your life does not get better by chance, it gets better by change.", author: "Jim Rohn"},
+      {text: "Believe you can and you're halfway there.", author: "Theodore Roosevelt"},
+      {text: "A river cuts through rock not because of its power, but its persistence.", author: "Jim Watkins"},
+      {text: "Starve your distractions, feed your focus.", author: "Unknown"},
+      {text: "Be stronger than your strongest excuse.", author: "Unknown"},
+      {text: "Who you become is more important than what you accomplish.", author: "Unknown"},
+      {text: "We've all got two wolves in us, a good one and a bad one, and they both want to eat. We just got to feed that good one a little more than the other one.", author: "Matthew McConaughey"},
+      {text: "The best time to plant a tree was 20 years ago. The second best time is now.", author: "Chinese proverb"},
+      {text: "The most dangerous thing you can do is play it safe.", author: "Casey Neistat"},
+      {text: "The only person you are destined to become is the person you decide to be.", author: "Ralph Waldo Emerson"}
+    ];
 
+    function getDailyQuote() {
+      const now = new Date();
+      const start = new Date(2026, 0, 1);
+      const dayOfYear = Math.floor((now - start) / 86400000);
+      const index = dayOfYear % dailyQuotes.length;
+      return dailyQuotes[index];
+    }
+window.scrollTo(0, 0);
     document.addEventListener('DOMContentLoaded', () => {
       const now = new Date();
       const dateEl = document.getElementById('today-date');
       if (dateEl) dateEl.textContent = now.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
+      const quote = getDailyQuote();
+      document.getElementById('daily-quote').textContent = '"' + quote.text + '"';
+      document.getElementById('daily-quote-author').textContent = '— ' + quote.author;
       loadApp();
     });
 
