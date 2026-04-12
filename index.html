@@ -251,8 +251,8 @@ document.addEventListener('touchend', e => {
   pulling = false;
   const diff = e.changedTouches[0].clientY - startY;
   if (diff > 80) {
-    alert('REFRESHING');
-    setTimeout(() => window.location.reload(), 300);
+    document.body.style.opacity = '0.1';
+setTimeout(() => window.location.reload(), 400);
   } else {
     document.body.style.opacity = '1';
   }
