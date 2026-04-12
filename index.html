@@ -250,7 +250,7 @@ document.addEventListener('touchend', e => {
   if (!pulling) return;
   pulling = false;
   const diff = e.changedTouches[0].clientY - startY;
-  if (diff > 80 && window.scrollY === 0) {
+  if (diff > 80) {
     setTimeout(() => window.location.reload(), 300);
   } else {
     document.body.style.opacity = '1';
