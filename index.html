@@ -236,8 +236,8 @@ document.addEventListener('touchstart', e => { startY = e.touches[0].clientY; })
 document.addEventListener('touchend', e => {
   const diff = e.changedTouches[0].clientY - startY;
   if (diff > 100 && window.scrollY === 10) {
-    document.body.style.opacity = '0.4';
-    setTimeout(() => window.location.reload(), 200);
+    document.body.style.opacity = '0.1';
+setTimeout(() => window.location.reload(), 600);
   }
 });
     document.addEventListener('DOMContentLoaded', () => {
