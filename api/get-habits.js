@@ -70,7 +70,7 @@ module.exports = async (req, res) => {
       const dayData = {
         day: days[d],
         date: dateVal ? dateVal.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '',
-        row: weekRow + d + 2, // 1-indexed sheet row
+        row: weekRow + d + 1, // 1-indexed sheet row
         isToday: dateNorm ? dateNorm.getTime() === today.getTime() : false,
         bad: [],
         good: []
