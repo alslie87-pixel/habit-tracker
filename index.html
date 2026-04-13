@@ -134,11 +134,45 @@
         <div id="habits-overview-list"></div>
       </div>
 
-      <!-- Signal Message -->
-      <div class="card bg-zinc-900 border border-emerald-400/20 rounded-3xl p-6 mb-3">
-        <div class="text-[11px] text-zinc-500 uppercase tracking-widest mb-2">Signal</div>
-        <div id="signal-message" class="text-sm text-zinc-300 italic"></div>
+      <!-- Signal Card -->
+<div class="card bg-zinc-900 border border-emerald-400/20 rounded-3xl p-6 mb-3">
+  <div class="text-[11px] text-zinc-500 uppercase tracking-widest mb-4">Signal</div>
+
+  <!-- Sparkline -->
+  <div class="text-[9px] text-zinc-500 uppercase tracking-widest mb-2">4-week trend</div>
+  <div id="signal-sparkline" class="flex items-end gap-1 mb-1" style="height:36px;"></div>
+  <div id="signal-week-labels" class="flex gap-1 mb-4"></div>
+
+  <div class="h-px bg-zinc-800 mb-4"></div>
+
+  <!-- Score + message -->
+  <div class="flex items-center gap-4 mb-3">
+    <div id="signal-score-circle" class="flex items-center justify-center rounded-full flex-shrink-0" style="width:48px;height:48px;border:2.5px solid #10b981;">
+      <span id="signal-score-num" class="text-sm font-semibold text-emerald-400"></span>
+    </div>
+    <div id="signal-message" class="text-xs text-zinc-300 italic leading-relaxed"></div>
+  </div>
+
+  <!-- Badges -->
+  <div class="grid grid-cols-3 gap-1 mb-3">
+    <div id="badge-trend" class="text-[10px] py-1.5 px-2 rounded-full text-center flex items-center justify-center bg-emerald-400/10 text-emerald-400"></div>
+    <div id="badge-week" class="text-[10px] py-1.5 px-2 rounded-full text-center flex items-center justify-center bg-yellow-400/10 text-yellow-400"></div>
+    <div id="badge-improved" class="text-[10px] py-1.5 px-2 rounded-full text-center flex items-center justify-center bg-blue-400/10 text-blue-400"></div>
+  </div>
+
+  <!-- Next to fall -->
+  <div id="next-to-fall-section" class="hidden rounded-xl p-3" style="background:#1f1f23;">
+    <div class="flex justify-between items-baseline mb-1">
+      <div>
+        <div class="text-[9px] text-zinc-500 uppercase tracking-widest">Next to fall</div>
+        <div id="ntf-name" class="text-sm font-medium text-red-400"></div>
       </div>
+      <div id="ntf-count" class="text-xs text-red-400"></div>
+    </div>
+    <div id="ntf-motivation" class="text-[10px] text-zinc-500 italic mb-2"></div>
+    <div id="ntf-boxes" class="grid gap-1" style="grid-template-columns:repeat(10,1fr);"></div>
+  </div>
+</div>
 
       <!-- Graveyard -->
       <div id="graveyard-section" class="hidden mb-5">
@@ -286,6 +320,51 @@ document.addEventListener('touchend', e => {
         document.getElementById('weekly-percent').textContent = data.percent + '%';
         document.getElementById('weekly-bar').style.width = data.percent + '%';
         document.getElementById('signal-message').textContent = '"' + data.signal + '"';
+
+// Sparkline
+const sparkline = document.getElementById('signal-sparkline');
+const weekLabels = document.getElementById('signal-week-labels');
+sparkline.innerHTML = '';
+weekLabels.innerHTML = '';
+const trend = data.weeklyTrend || [];
+const maxPct = Math.max(...trend, 1);
+trend.forEach((pct, i) => {
+  const isRecent = i >= trend.length - 2;
+  const bar = document.createElement('div');
+  bar.style.cssText = 'flex:1;border-radius:3px;height:' + Math.max(10, Math.round((pct / maxPct) * 100)) + '%;background:' + (isRecent ? '#10b981' : '#3f3f46') + ';';
+  sparkline.appendChild(bar);
+  const lbl = document.createElement('div');
+  lbl.style.cssText = 'flex:1;font-size:9px;color:#52525b;text-align:center;font-family:sans-serif;';
+  lbl.textContent = 'W' + (i + 1);
+  weekLabels.appendChild(lbl);
+});
+
+// Score
+const score = data.habitsOnTrack || 0;
+const total = data.totalHabits || 7;
+document.getElementById('signal-score-num').textContent = score + '/' + total;
+
+// Badges
+const prevScore = data.prevHabitsOnTrack || 0;
+document.getElementById('badge-trend').textContent = score > prevScore ? '↑ Up from ' + prevScore + '/' + total : score === prevScore ? '→ Holding ' + score + '/' + total : '↓ Down from ' + prevScore + '/' + total;
+document.getElementById('badge-week').textContent = (data.percent || 0) + '% this week';
+document.getElementById('badge-improved').textContent = data.mostImproved ? '↑ ' + data.mostImproved + ' most improved' : '—';
+
+// Next to fall
+if (data.nextToFall) {
+  document.getElementById('next-to-fall-section').classList.remove('hidden');
+  document.getElementById('ntf-name').textContent = data.nextToFall;
+  document.getElementById('ntf-count').textContent = data.nextToFallDays + ' / 30 days';
+  const days = data.daysToKill || 0;
+  document.getElementById('ntf-motivation').textContent = days === 1 ? 'One more day. Finish it.' : days + ' more days and it\'s dead forever. Finish it off.';
+  const boxes = document.getElementById('ntf-boxes');
+  boxes.innerHTML = '';
+  for (let i = 0; i < 30; i++) {
+    const b = document.createElement('div');
+    b.style.cssText = 'aspect-ratio:1;border-radius:3px;background:' + (i < data.nextToFallDays ? '#f87171' : '#2d2d2d') + ';';
+    boxes.appendChild(b);
+  }
+}
 
         // Focus habits
         document.getElementById('focus-good-name').textContent = data.goodFocus;
