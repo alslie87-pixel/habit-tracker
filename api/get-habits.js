@@ -103,11 +103,86 @@ module.exports = async (req, res) => {
       : 'N/A';
 
     // Weekly % from column Q (index 16) at summary row
-    let weeklyPercent = 0;
-    if (monthData[summaryRow] && monthData[summaryRow][16]) {
-      const raw = parseFloat(monthData[summaryRow][16]);
-      weeklyPercent = raw > 1 ? Math.round(raw) : Math.round(raw * 100);
-    }
+let weeklyPercent = 0;
+if (monthData[summaryRow] && monthData[summaryRow][16]) {
+  const raw = parseFloat(monthData[summaryRow][16]);
+  weeklyPercent = raw > 1 ? Math.round(raw) : Math.round(raw * 100);
+}
+
+// Last 4 weeks % for sparkline
+const weeklyTrend = [];
+for (let i = 0; i < weekStartRows.length; i++) {
+  const sr = weekStartRows[i] + 8;
+  if (monthData[sr] && monthData[sr][16]) {
+    const raw = parseFloat(monthData[sr][16]);
+    const pct = raw > 1 ? Math.round(raw) : Math.round(raw * 100);
+    weeklyTrend.push(pct);
+  } else {
+    weeklyTrend.push(0);
+  }
+}
+const last4Weeks = weeklyTrend.slice(Math.max(0, currentWeekIdx - 3), currentWeekIdx + 1);
+
+// Habits on track last 2 weeks (70%+ per habit)
+const prev2WeeksRows = [];
+for (let i = Math.max(0, currentWeekIdx - 1); i <= currentWeekIdx; i++) {
+  for (let d = 0; d < 7; d++) prev2WeeksRows.push(weekStartRows[i] + d);
+}
+const totalDays2 = prev2WeeksRows.filter(r => {
+  if (!monthData[r] || !monthData[r][1]) return false;
+  const d = new Date(monthData[r][1]); d.setHours(0,0,0,0);
+  return d <= today;
+}).length;
+
+let habitsOnTrack = 0;
+let prevHabitsOnTrack = 0;
+
+// Good habits on track
+for (let g = 0; g < 7; g++) {
+  let count = 0;
+  prev2WeeksRows.forEach(r => {
+    if (monthData[r] && monthData[r][8 + g] === 'TRUE') count++;
+  });
+  const pct = totalDays2 > 0 ? count / totalDays2 : 0;
+  if (pct >= 0.7) habitsOnTrack++;
+}
+
+// Most improved good habit (last 2 weeks vs previous 2 weeks)
+const prev2Start = Math.max(0, currentWeekIdx - 1);
+const prev2Rows = [];
+for (let i = prev2Start; i <= currentWeekIdx; i++)
+  for (let d = 0; d < 7; d++) prev2Rows.push(weekStartRows[i] + d);
+
+const older2Rows = [];
+for (let i = Math.max(0, currentWeekIdx - 3); i < prev2Start; i++)
+  for (let d = 0; d < 7; d++) older2Rows.push(weekStartRows[i] + d);
+
+let mostImproved = null;
+let bestImprovement = -999;
+for (let g = 0; g < 7; g++) {
+  let recentCount = 0, olderCount = 0;
+  prev2Rows.forEach(r => { if (monthData[r] && monthData[r][8 + g] === 'TRUE') recentCount++; });
+  older2Rows.forEach(r => { if (monthData[r] && monthData[r][8 + g] === 'TRUE') olderCount++; });
+  const recentPct = prev2Rows.length > 0 ? recentCount / prev2Rows.length : 0;
+  const olderPct = older2Rows.length > 0 ? olderCount / older2Rows.length : 0;
+  const improvement = recentPct - olderPct;
+  if (improvement > bestImprovement) {
+    bestImprovement = improvement;
+    mostImproved = goodHabitNames[g];
+  }
+}
+
+// Next to fall — bad habit closest to 30 days clean (highest count in row46)
+let nextToFall = null;
+let nextToFallDays = 0;
+for (let b = 0; b < 6; b++) {
+  const count = row46[2 + b] ? parseInt(row46[2 + b]) || 0 : 0;
+  if (count > nextToFallDays && count < 30) {
+    nextToFallDays = count;
+    nextToFall = badHabitNames[b];
+  }
+}
+const daysToKill = 30 - nextToFallDays;
 
     // Streak from column R (index 17) at week start
     const streak = monthData[weekRow] && monthData[weekRow][17] ? parseInt(monthData[weekRow][17]) || 0 : 0;
@@ -187,7 +262,14 @@ module.exports = async (req, res) => {
       goodHabitStats,
       worst,
       best,
-      graveyard
+      graveyard,
+weeklyTrend: last4Weeks,
+habitsOnTrack,
+totalHabits: 7,
+mostImproved,
+nextToFall,
+nextToFallDays,
+daysToKill
     });
 
   } catch (err) {
