@@ -172,18 +172,6 @@ for (let g = 0; g < 7; g++) {
   }
 }
 
-// Next to fall — bad habit closest to 30 days clean (highest count in row46)
-let nextToFall = null;
-let nextToFallDays = 0;
-for (let b = 0; b < 6; b++) {
-  const count = row46[2 + b] ? parseInt(row46[2 + b]) || 0 : 0;
-  if (count > nextToFallDays && count < 30) {
-    nextToFallDays = count;
-    nextToFall = badHabitNames[b];
-  }
-}
-const daysToKill = 30 - nextToFallDays;
-
     // Streak from column R (index 17) at week start
     const streak = monthData[weekRow] && monthData[weekRow][17] ? parseInt(monthData[weekRow][17]) || 0 : 0;
 
@@ -201,6 +189,18 @@ const daysToKill = 30 - nextToFallDays;
 
     // Get row 46 counts for habit overview + graveyard
     const row46 = monthData[45] || []; // 0-indexed
+
+// Next to fall — bad habit closest to 30 days clean (highest count in row46)
+let nextToFall = null;
+let nextToFallDays = 0;
+for (let b = 0; b < 6; b++) {
+  const count = row46[2 + b] ? parseInt(row46[2 + b]) || 0 : 0;
+  if (count > nextToFallDays && count < 30) {
+    nextToFallDays = count;
+    nextToFall = badHabitNames[b];
+  }
+}
+const daysToKill = 30 - nextToFallDays;
 
     // Count days elapsed this month
     const firstOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
