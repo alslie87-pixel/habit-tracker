@@ -52,11 +52,20 @@
       <!-- Today's date -->
       <div id="today-date" class="text-zinc-400 text-center text-sm mb-8 font-medium"></div>
 
-      <!-- Streak Card -->
-      <div class="card bg-zinc-900 border border-emerald-400/30 rounded-3xl p-8 mb-5 text-center shadow-2xl shadow-emerald-400/10">
-        <div id="streak-count" class="text-[3.5rem] leading-none font-semibold text-white mb-1">0</div>
-        <div class="uppercase text-emerald-400 text-lg font-medium tracking-[1px]">day streak</div>
-      </div>
+      <!-- Streak + Weekly Card -->
+<div class="card bg-zinc-900 border border-emerald-400/30 rounded-3xl p-8 mb-5 shadow-2xl shadow-emerald-400/10">
+  <div class="flex items-center justify-between gap-4">
+    <div class="flex-1 text-center">
+      <div id="streak-count" class="text-[3.5rem] leading-none font-semibold text-white mb-1">0</div>
+      <div class="uppercase text-emerald-400 text-lg font-medium tracking-[1px]">day streak</div>
+    </div>
+    <div class="w-px bg-zinc-800 self-stretch"></div>
+    <div class="flex-1 text-center">
+      <div class="text-[3.5rem] leading-none font-semibold text-white mb-1"><span id="weekly-percent-top">0</span><span class="text-2xl text-emerald-400">%</span></div>
+      <div class="uppercase text-emerald-400 text-lg font-medium tracking-[1px]">this week</div>
+    </div>
+  </div>
+</div>
 <!-- Daily Wisdom -->
       <div class="card bg-zinc-900 border border-zinc-800 rounded-3xl p-6 mb-5 text-center">
         <div class="text-[9px] uppercase tracking-widest text-zinc-500 mb-3">Daily wisdom</div>
@@ -102,17 +111,6 @@
 
       <!-- Performance -->
       <div class="text-[11px] text-zinc-500 uppercase tracking-[1.5px] font-medium mt-8 mb-3">Performance</div>
-
-      <!-- Weekly % -->
-      <div class="card bg-zinc-900 border border-emerald-400/20 rounded-3xl p-6 mb-3">
-        <div class="flex justify-between items-baseline mb-3">
-          <span class="text-[11px] text-zinc-500 uppercase tracking-widest">Weekly completion</span>
-          <span id="weekly-percent" class="text-2xl font-semibold text-emerald-400">0%</span>
-        </div>
-        <div class="h-1.5 bg-zinc-800 rounded-full overflow-hidden">
-          <div id="weekly-bar" class="h-full bg-emerald-400 rounded-full" style="width:0%"></div>
-        </div>
-      </div>
 
       <!-- Needs Work / Best Progress -->
       <div class="grid grid-cols-2 gap-3 mb-3">
@@ -317,8 +315,7 @@ document.addEventListener('touchend', e => {
 
         document.getElementById('header-info').textContent = data.month + ' \u2022 Week starting ' + data.weekStart;
         document.getElementById('streak-count').textContent = data.streak;
-        document.getElementById('weekly-percent').textContent = data.percent + '%';
-        document.getElementById('weekly-bar').style.width = data.percent + '%';
+        document.getElementById('weekly-percent-top').textContent = data.percent;
         document.getElementById('signal-message').textContent = '"' + data.signal + '"';
 
 // Sparkline
@@ -402,9 +399,10 @@ if (data.nextToFall) {
         // Good habits overview
         var listEl = document.getElementById('habits-overview-list');
         if (data.goodHabitStats && data.goodHabitStats.length > 0) {
-          listEl.innerHTML = data.goodHabitStats.map(function(h, i) {
+          var sortedStats = data.goodHabitStats.slice().sort(function(a,b){ return b.percent - a.percent; });
+          listEl.innerHTML = sortedStats.map(function(h, i) {
             var color = h.percent >= 70 ? '#10b981' : h.percent >= 50 ? '#eab308' : '#ef4444';
-            var border = i < data.goodHabitStats.length - 1 ? 'border-bottom:1px solid #27272a;' : '';
+            var border = i < sortedStats.length - 1 ? 'border-bottom:1px solid #27272a;' : '';
             return '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;' + border + '">' +
               '<span style="font-size:13px;color:#d4d4d8;">' + h.name + '</span>' +
               '<span style="font-size:13px;font-weight:500;color:' + color + ';">' + h.percent + '%</span></div>';
