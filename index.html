@@ -328,9 +328,8 @@ const maxPct = Math.max(...trend, 1);
 trend.forEach((pct, i) => {
   const isRecent = i >= trend.length - 2;
   const bar = document.createElement('div');
-  const bar = document.createElement('div');
-      bar.style.cssText = 'flex:1;border-radius:3px;height:' + Math.max(10, Math.round((pct / maxPct) * 100)) + '%;background:' + (isRecent ? '#10b981' : '#3f3f46') + ';min-height:4px;';
-      sparkline.appendChild(bar);
+  bar.style.cssText = 'flex:1;border-radius:3px;height:' + Math.max(10, Math.round((pct / maxPct) * 100)) + '%;background:' + (isRecent ? '#10b981' : '#3f3f46') + ';min-height:4px;';
+  sparkline.appendChild(bar);
   const lbl = document.createElement('div');
   lbl.style.cssText = 'flex:1;font-size:9px;color:#52525b;text-align:center;font-family:sans-serif;';
   lbl.textContent = 'W' + (i + 1);
