@@ -347,7 +347,7 @@ document.getElementById('signal-score-num').textContent = score + '/' + total;
 // Badges
 const prevScore = data.prevHabitsOnTrack || 0;
 document.getElementById('badge-trend').textContent = score > prevScore ? '↑ Up from ' + prevScore + '/' + total : score === prevScore ? '→ Holding ' + score + '/' + total : '↓ Down from ' + prevScore + '/' + total;
-document.getElementById('badge-week').textContent = 'Best: ' + (data.bestWeek || 0) + '%';
+document.getElementById('badge-week').textContent = 'Best Week: ' + (data.bestWeek || 0) + '%';
 document.getElementById('badge-improved').textContent = data.mostImproved ? '↑ ' + data.mostImproved + ' most improved' : '—';
 
 // Next to fall
