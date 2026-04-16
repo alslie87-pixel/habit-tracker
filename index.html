@@ -138,7 +138,7 @@
 
   <!-- Sparkline -->
   <div class="text-[9px] text-zinc-500 uppercase tracking-widest mb-2">4-week trend</div>
-  <div id="signal-sparkline" class="flex items-end gap-1 mb-1" style="height:36px;"></div>
+  <div id="signal-sparkline" class="flex items-end gap-1 mb-1" style="height:56px;"></div>
   <div id="signal-week-labels" class="flex gap-1 mb-4"></div>
 
   <div class="h-px bg-zinc-800 mb-4"></div>
@@ -328,8 +328,9 @@ const maxPct = Math.max(...trend, 1);
 trend.forEach((pct, i) => {
   const isRecent = i >= trend.length - 2;
   const bar = document.createElement('div');
-  bar.style.cssText = 'flex:1;border-radius:3px;height:' + Math.max(10, Math.round((pct / maxPct) * 100)) + '%;background:' + (isRecent ? '#10b981' : '#3f3f46') + ';';
-  sparkline.appendChild(bar);
+  const bar = document.createElement('div');
+      bar.style.cssText = 'flex:1;border-radius:3px;height:' + Math.max(10, Math.round((pct / maxPct) * 100)) + '%;background:' + (isRecent ? '#10b981' : '#3f3f46') + ';min-height:4px;';
+      sparkline.appendChild(bar);
   const lbl = document.createElement('div');
   lbl.style.cssText = 'flex:1;font-size:9px;color:#52525b;text-align:center;font-family:sans-serif;';
   lbl.textContent = 'W' + (i + 1);
@@ -358,7 +359,7 @@ if (data.nextToFall) {
   boxes.innerHTML = '';
   for (let i = 0; i < 30; i++) {
     const b = document.createElement('div');
-    b.style.cssText = 'aspect-ratio:1;border-radius:3px;background:' + (i < data.nextToFallDays ? '#f87171' : '#2d2d2d') + ';';
+    b.style.cssText = 'aspect-ratio:1;border-radius:2px;height:6px;background:' + (i < data.nextToFallDays ? '#f87171' : '#2d2d2d') + ';';
     boxes.appendChild(b);
   }
 }
