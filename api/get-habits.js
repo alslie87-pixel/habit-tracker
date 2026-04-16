@@ -123,6 +123,37 @@ for (let i = 0; i < weekStartRows.length; i++) {
 }
 const last4Weeks = weeklyTrend.slice(Math.max(0, currentWeekIdx - 3), currentWeekIdx + 1);
 
+// Best week this month
+const bestWeek = weeklyTrend.length > 0 ? Math.max(...weeklyTrend.filter(w => w > 0)) : 0;
+
+// Smart signal — always based on last 2 COMPLETED weeks vs 2 before that
+// Never looks at current week — works on Monday too
+const completedWeeks = weeklyTrend.slice(0, currentWeekIdx); // exclude current week
+const recent2 = completedWeeks.slice(-2);
+const older2 = completedWeeks.slice(-4, -2);
+const recent2Avg = recent2.length > 0 ? Math.round(recent2.reduce((a,b) => a+b, 0) / recent2.length) : 0;
+const older2Avg = older2.length > 0 ? Math.round(older2.reduce((a,b) => a+b, 0) / older2.length) : 0;
+const trendDiff = recent2Avg - older2Avg;
+
+let smartSignal = '';
+if (completedWeeks.length === 0) {
+  smartSignal = 'First week. Every habit counts. Start strong.';
+} else if (completedWeeks.length === 1) {
+  smartSignal = recent2Avg >= 70
+    ? 'Strong start. Keep this energy going into next week.'
+    : 'Slow start — but one week means nothing yet. Show up today.';
+} else if (trendDiff >= 15) {
+  smartSignal = `Up ${trendDiff}% on your last two weeks. You\'re building something real.`;
+} else if (trendDiff >= 5) {
+  smartSignal = `Trending up. ${recent2Avg}% average — keep the pressure on.`;
+} else if (trendDiff >= -5) {
+  smartSignal = `Holding steady at ${recent2Avg}%. Consistency is the game — don\'t slip.`;
+} else if (trendDiff >= -15) {
+  smartSignal = `Dipping slightly. You were at ${older2Avg}% — you know you can get back there.`;
+} else {
+  smartSignal = `Down ${Math.abs(trendDiff)}% from your best. This is the week to turn it around.`;
+}
+
 // Habits on track last 2 weeks (70%+ per habit)
 const prev2WeeksRows = [];
 for (let i = Math.max(0, currentWeekIdx - 1); i <= currentWeekIdx; i++) {
@@ -251,7 +282,7 @@ const daysToKill = 30 - nextToFallDays;
       streak,
       percent: weeklyPercent,
       weakest,
-      signal: signalMsg,
+      signal: smartSignal || signalMsg,
       week: weekData,
       sheetName: monthName,
       goodFocus,
@@ -269,7 +300,8 @@ totalHabits: 7,
 mostImproved,
 nextToFall,
 nextToFallDays,
-daysToKill
+daysToKill,
+bestWeek
     });
 
   } catch (err) {
