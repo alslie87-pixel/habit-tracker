@@ -762,14 +762,15 @@
       if (!appData) return;
       var modal = document.getElementById('manage-modal');
       var sheet = document.getElementById('manage-modal-sheet');
-      renderManageSection('bad');
-      renderManageSection('good');
-      modal.classList.remove('hidden');
-      modal.style.display = 'flex';
-      document.body.style.position = 'fixed';
-      document.body.style.width = '100%';
-      setTimeout(function() { sheet.style.transform = 'translateY(0)'; }, 10);
-    }
+  renderManageSection('bad');
+  renderManageSection('good');
+  modal.classList.remove('hidden');
+  modal.style.display = 'flex';
+  document.body.style.position = 'fixed';
+  document.body.style.width = '100%';
+  setTimeout(function() { sheet.style.transform = 'translateY(0)'; }, 10);
+  addPullToClose(sheet, closeManageModal);
+}
 
     function closeManageModal() {
       var sheet = document.getElementById('manage-modal-sheet');
@@ -841,11 +842,12 @@
       modal.classList.remove('hidden');
       modal.style.display = 'flex';
       document.body.style.position = 'fixed';
-      document.body.style.width = '100%';
-      setTimeout(function() { sheet.style.transform = 'translateY(0)'; }, 10);
-    }
+  document.body.style.width = '100%';
+  setTimeout(function() { sheet.style.transform = 'translateY(0)'; }, 10);
+  addPullToClose(sheet, closeConfirmModal);
+}
 
-    function closeConfirmModal() {
+function closeConfirmModal() {
       var sheet = document.getElementById('confirm-modal-sheet');
       sheet.style.transform = 'translateY(100%)';
       setTimeout(function() {
@@ -899,7 +901,44 @@
         btn.disabled = false;
       }
     }
+// ── PULL TO CLOSE MODALS ──────────────────────────────
+function addPullToClose(sheet, closeFn) {
+  var startY = 0;
+  var isDragging = false;
 
+  function onTouchStart(e) {
+    startY = e.touches[0].clientY;
+    isDragging = true;
+    sheet.style.transition = 'none';
+  }
+
+  function onTouchMove(e) {
+    if (!isDragging) return;
+    var diff = e.touches[0].clientY - startY;
+    if (diff > 0) {
+      sheet.style.transform = 'translateY(' + diff + 'px)';
+    }
+  }
+
+  function onTouchEnd(e) {
+    if (!isDragging) return;
+    isDragging = false;
+    sheet.style.transition = 'transform 0.3s ease';
+    var diff = e.changedTouches[0].clientY - startY;
+    if (diff > 80) {
+      closeFn();
+    } else {
+      sheet.style.transform = 'translateY(0)';
+    }
+    sheet.removeEventListener('touchstart', onTouchStart);
+    sheet.removeEventListener('touchmove', onTouchMove);
+    sheet.removeEventListener('touchend', onTouchEnd);
+  }
+
+  sheet.addEventListener('touchstart', onTouchStart, { passive: true });
+  sheet.addEventListener('touchmove', onTouchMove, { passive: true });
+  sheet.addEventListener('touchend', onTouchEnd, { passive: true });
+}
     // Auto-refresh every 5 minutes
     setTimeout(function() { window.location.reload(); }, 300000);
   </script>
