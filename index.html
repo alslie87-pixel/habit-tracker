@@ -8,20 +8,237 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@500;600;700&family=DM+Sans:wght@300;400;500&family=Playfair+Display:wght@400;500&family=Nunito:wght@300;400;600&display=swap" rel="stylesheet">
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600&display=swap');
-    body { font-family: 'Inter', system-ui, sans-serif; }
-    .title-font { font-family: 'Space Grotesk', sans-serif; }
+    /* ── THEME VARIABLES ───────────────────────────────────── */
+    :root {
+      --bg-page:        #0a0a0a;
+      --bg-card:        #111113;
+      --bg-card-inner:  #0e0e11;
+      --bg-card-deep:   #0a0a0e;
+      --border-default: #2a2a32;
+      --border-accent:  rgba(123,97,255,0.35);
+      --border-bad:     rgba(248,113,113,0.2);
+      --border-good:    rgba(123,97,255,0.2);
+      --accent:         #7b61ff;
+      --accent-light:   #c084fc;
+      --accent-text:    #a78bfa;
+      --bad-color:      #f87171;
+      --bad-bg:         rgba(248,113,113,0.08);
+      --good-bg:        rgba(123,97,255,0.08);
+      --text-primary:   #f0f0f0;
+      --text-secondary: #a0a0b0;
+      --text-muted:     #555568;
+      --text-label:     #666680;
+      --chip-unchecked-good-bg: #1a1a24;
+      --chip-unchecked-good-text: #555570;
+      --score-border:   #7b61ff;
+      --score-text:     #c084fc;
+      --badge-trend-bg: rgba(123,97,255,0.1);
+      --badge-trend-text: #a78bfa;
+      --badge-week-bg:  rgba(234,179,8,0.1);
+      --badge-week-text: #fbbf24;
+      --badge-imp-bg:   rgba(96,165,250,0.1);
+      --badge-imp-text: #60a5fa;
+      --ntf-bg:         #0f0f18;
+      --ntf-filled:     #f87171;
+      --ntf-empty:      #2a2a3a;
+      --conquered-border: #2a2a32;
+      --spark-recent:   #7b61ff;
+      --spark-old:      #2a2a38;
+      --btn-bg:         linear-gradient(135deg, #7b61ff, #c084fc);
+      --btn-text:       #fff;
+      --toggle-bg:      #1a1a1f;
+      --toggle-border:  #2a2a32;
+      --toggle-text:    #888;
+      --toggle-icon:    '☀';
+      --font-title:     'Syne', sans-serif;
+      --font-body:      'DM Sans', sans-serif;
+    }
+
+    html.light {
+      --bg-page:        #fdf6f0;
+      --bg-card:        #fff8f4;
+      --bg-card-inner:  #ffeee8;
+      --bg-card-deep:   #fff5f7;
+      --border-default: #f0ddd8;
+      --border-accent:  rgba(232,132,154,0.4);
+      --border-bad:     rgba(232,132,154,0.25);
+      --border-good:    rgba(232,132,154,0.25);
+      --accent:         #e8849a;
+      --accent-light:   #f4b8c4;
+      --accent-text:    #d06080;
+      --bad-color:      #d06080;
+      --bad-bg:         rgba(232,132,154,0.1);
+      --good-bg:        rgba(232,132,154,0.08);
+      --text-primary:   #3a2030;
+      --text-secondary: #7a5060;
+      --text-muted:     #c09090;
+      --text-label:     #b08090;
+      --chip-unchecked-good-bg: #ffeae8;
+      --chip-unchecked-good-text: #c09090;
+      --score-border:   #e8849a;
+      --score-text:     #d06080;
+      --badge-trend-bg: rgba(232,132,154,0.1);
+      --badge-trend-text: #d06080;
+      --badge-week-bg:  rgba(232,132,154,0.1);
+      --badge-week-text: #c06878;
+      --badge-imp-bg:   rgba(232,132,154,0.1);
+      --badge-imp-text: #b06070;
+      --ntf-bg:         #fff5f7;
+      --ntf-filled:     #e8849a;
+      --ntf-empty:      #f5e0e4;
+      --conquered-border: #f0ddd8;
+      --spark-recent:   #e8849a;
+      --spark-old:      #f5d0d8;
+      --btn-bg:         linear-gradient(135deg, #e8849a, #f4c0cc);
+      --btn-text:       #fff;
+      --toggle-bg:      #fff8f4;
+      --toggle-border:  #f0ddd8;
+      --toggle-text:    #b08090;
+      --font-title:     'Nunito', sans-serif;
+      --font-body:      'Nunito', sans-serif;
+    }
+
+    /* ── BASE ──────────────────────────────────────────────── */
+    body {
+      font-family: var(--font-body);
+      background: var(--bg-page);
+      color: var(--text-primary);
+      transition: background 0.3s ease, color 0.3s ease;
+    }
+    .title-font { font-family: var(--font-title); }
+
+    /* ── THEME TOGGLE BUTTON ───────────────────────────────── */
+    #theme-toggle {
+      background: var(--toggle-bg);
+      border: 1px solid var(--toggle-border);
+      color: var(--toggle-text);
+      border-radius: 100px;
+      padding: 6px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      letter-spacing: 0.04em;
+      font-family: var(--font-body);
+    }
+    #theme-toggle:hover { opacity: 0.8; }
+
+    /* ── CARDS & COMPONENTS ────────────────────────────────── */
     .card { transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
     .card:hover { transform: translateY(-2px); }
     .habit-chip { transition: all 0.2s ease; }
-    .day-card.today { border-color: rgba(16, 185, 129, 0.6); box-shadow: 0 0 20px rgba(16, 185, 129, 0.1); }
+
+    .th-card {
+      background: var(--bg-card);
+      border-color: var(--border-default);
+    }
+    .th-card-accent {
+      background: var(--bg-card);
+      border-color: var(--border-accent);
+    }
+    .th-card-good {
+      background: var(--bg-card);
+      border-color: var(--border-good);
+    }
+    .th-card-bad {
+      background: var(--bg-card);
+      border-color: var(--border-bad);
+    }
+
+    /* streak/weekly big numbers */
+    .th-big-num { color: var(--text-primary); }
+    .th-accent-label { color: var(--accent-text); }
+
+    /* day card today highlight */
+    .day-card.today {
+      border-color: var(--accent) !important;
+      box-shadow: 0 0 20px rgba(123,97,255,0.08);
+    }
+    html.light .day-card.today {
+      box-shadow: 0 0 20px rgba(232,132,154,0.1);
+    }
+
+    /* calendar */
     .calendar-scroll { scrollbar-width: none; }
     body { overscroll-behavior-y: none; }
-@keyframes bounce-dot { 0%,80%,100% { transform: translateY(0); opacity: 0.4; } 40% { transform: translateY(-6px); opacity: 1; } }
+
+    /* habit chips */
+    .chip-good-on {
+      background: var(--good-bg) !important;
+      color: var(--accent-text) !important;
+    }
+    .chip-good-off {
+      background: var(--chip-unchecked-good-bg) !important;
+      color: var(--chip-unchecked-good-text) !important;
+    }
+    .chip-bad-on {
+      background: var(--good-bg) !important;
+      color: var(--accent-text) !important;
+    }
+    .chip-bad-off {
+      background: var(--bad-bg) !important;
+      color: var(--bad-color) !important;
+    }
+
+    /* conquered section */
+    .th-conquered-card {
+      background: var(--bg-card);
+      border-color: var(--conquered-border);
+    }
+    .th-conquered-item {
+      background: var(--bg-card-inner);
+      border-color: var(--border-default);
+    }
+    .th-conquered-pct { color: var(--accent-text); }
+
+    /* divider */
+    .th-divider { background: var(--border-default); }
+
+    /* modal */
+    .th-modal-bg { background: var(--bg-card); }
+    .th-modal-handle { background: var(--border-default); }
+    .th-modal-option-active {
+      background: var(--good-bg) !important;
+      color: var(--accent-text) !important;
+      border-color: var(--border-accent) !important;
+    }
+    .th-modal-option-inactive {
+      background: var(--bg-card-inner) !important;
+      color: var(--text-secondary) !important;
+      border-color: var(--border-default) !important;
+    }
+    .th-modal-option-inactive:hover {
+      background: var(--bg-card-deep) !important;
+    }
+
+    /* coaching output */
+    .th-coaching-output {
+      background: var(--bg-card);
+      border-color: var(--border-accent);
+      color: var(--text-secondary);
+    }
+
+    /* footer badge */
+    .th-footer-badge {
+      background: var(--bg-card);
+      color: var(--text-muted);
+    }
+
+    /* light mode: Playfair for big numbers */
+    html.light .th-big-num {
+      font-family: 'Playfair Display', serif;
+    }
+
+    @keyframes bounce-dot {
+      0%,80%,100% { transform: translateY(0); opacity: 0.4; }
+      40% { transform: translateY(-6px); opacity: 1; }
+    }
   </style>
 </head>
-<body class="bg-[#0a0a0a] text-white min-h-screen p-4 md:p-6">
+<body class="min-h-screen p-4 md:p-6">
   <div class="max-w-5xl w-full mx-auto">
 
     <!-- Loading State -->
@@ -29,172 +246,176 @@
 
     <!-- Error State -->
     <div id="error-state" class="hidden">
-      <div class="bg-red-950 border border-red-800 text-red-300 rounded-3xl p-8 text-center">
+      <div class="rounded-3xl p-8 text-center" style="background:rgba(248,113,113,0.08);border:1px solid rgba(248,113,113,0.3);color:var(--bad-color)">
         <h2 class="text-xl font-semibold mb-2">Oops!</h2>
-        <p id="error-message" class="text-red-200"></p>
-        <p class="text-xs mt-6 text-zinc-500">Make sure your Google Sheet is shared with the service account.</p>
+        <p id="error-message" style="color:var(--text-secondary)"></p>
+        <p class="text-xs mt-6" style="color:var(--text-muted)">Make sure your Google Sheet is shared with the service account.</p>
       </div>
     </div>
 
     <!-- Main App -->
     <div id="app" class="hidden">
 
+      <!-- Header -->
       <div class="flex flex-col items-center mb-8">
-  <div class="flex items-center gap-x-3">
-    <div id="header-dots" class="flex items-center gap-x-1.5">
-      <div class="w-2.5 h-2.5 bg-emerald-400 rounded-full"></div>
-    </div>
-    <h1 class="title-font text-3xl font-semibold tracking-[-1px] text-white">Habit Tracker</h1>
-  </div>
-  <p id="header-info" class="text-emerald-400 text-sm font-medium mt-1"></p>
-</div>
+        <div class="flex items-center gap-x-3 w-full justify-between">
+          <div class="flex items-center gap-x-3">
+            <div id="header-dots" class="flex items-center gap-x-1.5">
+              <div class="w-2.5 h-2.5 rounded-full" style="background:var(--accent)"></div>
+            </div>
+            <h1 class="title-font text-3xl font-semibold tracking-[-1px]" style="color:var(--text-primary)">Habit Tracker</h1>
+          </div>
+          <button id="theme-toggle" onclick="toggleTheme()">☀ Light</button>
+        </div>
+        <p id="header-info" class="text-sm font-medium mt-1 self-start ml-8" style="color:var(--accent-text)"></p>
+      </div>
 
       <!-- Today's date -->
-      <div id="today-date" class="text-zinc-400 text-center text-sm mb-8 font-medium"></div>
+      <div id="today-date" class="text-center text-sm mb-8 font-medium" style="color:var(--text-secondary)"></div>
 
       <!-- Streak + Weekly Card -->
-<div class="card bg-zinc-900 border border-emerald-400/30 rounded-3xl p-8 mb-5 shadow-2xl shadow-emerald-400/10">
-  <div class="flex items-center justify-between gap-4">
-    <div class="flex-1 text-center">
-      <div id="streak-count" class="text-[3.5rem] leading-none font-semibold text-white mb-1">0</div>
-      <div class="uppercase text-emerald-400 text-lg font-medium tracking-[1px]">day streak</div>
-    </div>
-    <div class="w-px bg-zinc-800 self-stretch"></div>
-    <div class="flex-1 text-center">
-      <div class="text-[3.5rem] leading-none font-semibold text-white mb-1"><span id="weekly-percent-top">0</span><span class="text-2xl text-emerald-400">%</span></div>
-      <div class="uppercase text-emerald-400 text-lg font-medium tracking-[1px]">this week</div>
-    </div>
-  </div>
-</div>
-<!-- Daily Wisdom -->
-      <div class="card bg-zinc-900 border border-zinc-800 rounded-3xl p-6 mb-5 text-center">
-        <div class="text-[9px] uppercase tracking-widest text-zinc-500 mb-3">Daily wisdom</div>
-        <div id="daily-quote" class="text-sm text-zinc-300 italic leading-relaxed"></div>
-        <div id="daily-quote-author" class="text-[11px] text-zinc-500 mt-2"></div>
+      <div class="card th-card-accent border rounded-3xl p-8 mb-5 shadow-2xl">
+        <div class="flex items-center justify-between gap-4">
+          <div class="flex-1 text-center">
+            <div id="streak-count" class="th-big-num text-[3.5rem] leading-none font-semibold mb-1">0</div>
+            <div class="th-accent-label uppercase text-lg font-medium tracking-[1px]">day streak</div>
+          </div>
+          <div class="w-px self-stretch th-divider"></div>
+          <div class="flex-1 text-center">
+            <div class="th-big-num text-[3.5rem] leading-none font-semibold mb-1">
+              <span id="weekly-percent-top">0</span><span class="text-2xl th-accent-label">%</span>
+            </div>
+            <div class="th-accent-label uppercase text-lg font-medium tracking-[1px]">this week</div>
+          </div>
+        </div>
       </div>
+
+      <!-- Daily Wisdom -->
+      <div class="card th-card border rounded-3xl p-6 mb-5 text-center">
+        <div class="text-[9px] uppercase tracking-widest mb-3" style="color:var(--text-muted)">Daily wisdom</div>
+        <div id="daily-quote" class="text-sm italic leading-relaxed" style="color:var(--text-secondary)"></div>
+        <div id="daily-quote-author" class="text-[11px] mt-2" style="color:var(--text-muted)"></div>
+      </div>
+
       <!-- Progress: Building -->
-      <div id="focus-building" class="card bg-zinc-900 border border-emerald-400/20 rounded-3xl p-6 mb-3">
+      <div id="focus-building" class="card th-card-good border rounded-3xl p-6 mb-3">
         <div class="flex justify-between items-center mb-3">
-          <span id="focus-good-name" onclick="openFocusModal('good')" class="text-lg font-semibold text-white cursor-pointer hover:text-emerald-400 transition-colors">—</span>
-          <span id="focus-good-count" class="text-sm text-emerald-400">0 / 30</span>
+          <span id="focus-good-name" onclick="openFocusModal('good')" class="text-lg font-semibold cursor-pointer transition-colors" style="color:var(--text-primary)">—</span>
+          <span id="focus-good-count" class="text-sm" style="color:var(--accent-text)">0 / 30</span>
         </div>
-        <div class="h-2 bg-zinc-800 rounded-full overflow-hidden mb-3">
-          <div id="focus-good-bar" class="h-full bg-emerald-400 rounded-full transition-all" style="width:0%"></div>
+        <div class="h-2 rounded-full overflow-hidden mb-3" style="background:var(--border-default)">
+          <div id="focus-good-bar" class="h-full rounded-full transition-all" style="width:0%;background:var(--accent)"></div>
         </div>
-        <div class="text-[11px] text-emerald-400">Progress: building</div>
-        <div id="focus-good-msg" class="text-[11px] text-zinc-500 mt-0.5">Keep showing up.</div>
+        <div class="text-[11px]" style="color:var(--accent-text)">Progress: building</div>
+        <div id="focus-good-msg" class="text-[11px] mt-0.5" style="color:var(--text-muted)">Keep showing up.</div>
       </div>
 
       <!-- Progress: Eliminating -->
-      <div id="focus-eliminating" class="card bg-zinc-900 border border-red-400/20 rounded-3xl p-6 mb-5">
+      <div id="focus-eliminating" class="card th-card-bad border rounded-3xl p-6 mb-5">
         <div class="flex justify-between items-center mb-3">
-          <span id="focus-bad-name" onclick="openFocusModal('bad')" class="text-lg font-semibold text-white cursor-pointer hover:text-red-400 transition-colors">—</span>
-          <span id="focus-bad-count" class="text-sm text-red-400">0 / 30</span>
+          <span id="focus-bad-name" onclick="openFocusModal('bad')" class="text-lg font-semibold cursor-pointer transition-colors" style="color:var(--text-primary)">—</span>
+          <span id="focus-bad-count" class="text-sm" style="color:var(--bad-color)">0 / 30</span>
         </div>
-        <div class="h-2 bg-zinc-800 rounded-full overflow-hidden mb-3" style="direction:rtl">
-          <div id="focus-bad-bar" class="h-full bg-red-400 rounded-full transition-all" style="width:0%"></div>
+        <div class="h-2 rounded-full overflow-hidden mb-3" style="direction:rtl;background:var(--border-default)">
+          <div id="focus-bad-bar" class="h-full rounded-full transition-all" style="width:0%;background:var(--bad-color)"></div>
         </div>
-        <div class="text-[11px] text-emerald-400">Progress: eliminating</div>
-        <div id="focus-bad-msg" class="text-[11px] text-zinc-500 mt-0.5">Stay strong.</div>
+        <div class="text-[11px]" style="color:var(--accent-text)">Progress: eliminating</div>
+        <div id="focus-bad-msg" class="text-[11px] mt-0.5" style="color:var(--text-muted)">Stay strong.</div>
       </div>
 
       <!-- Weekly Calendar -->
       <div class="mb-5">
         <div class="flex items-center justify-between mb-4">
-          <h2 class="title-font text-lg font-semibold tracking-tight">This Week</h2>
-          <span id="calendar-status" class="text-[10px] text-zinc-500">Loading...</span>
+          <h2 class="title-font text-lg font-semibold tracking-tight" style="color:var(--text-primary)">This Week</h2>
+          <span id="calendar-status" class="text-[10px]" style="color:var(--text-muted)">Loading...</span>
         </div>
         <div class="calendar-scroll overflow-x-auto md:overflow-visible pb-4">
           <div id="calendar-grid" class="flex gap-3 min-w-max md:min-w-0 md:grid md:grid-cols-7"></div>
         </div>
       </div>
 
-      <!-- Performance -->
-      <div class="text-[11px] text-zinc-500 uppercase tracking-[1.5px] font-medium mt-8 mb-3">Performance</div>
+      <!-- Performance label -->
+      <div class="text-[11px] uppercase tracking-[1.5px] font-medium mt-8 mb-3" style="color:var(--text-muted)">Performance</div>
 
       <!-- Needs Work / Best Progress -->
       <div class="grid grid-cols-2 gap-3 mb-3">
-        <div class="card bg-zinc-900 border border-red-400/10 rounded-3xl p-5">
-          <div class="text-[9px] uppercase tracking-widest text-red-400 mb-2">Needs work</div>
-          <div id="worst-habit-name" class="text-base font-semibold text-red-300">—</div>
-          <div id="worst-habit-pct" class="text-[11px] text-zinc-500 mt-1">—</div>
+        <div class="card th-card-bad border rounded-3xl p-5">
+          <div class="text-[9px] uppercase tracking-widest mb-2" style="color:var(--bad-color)">Needs work</div>
+          <div id="worst-habit-name" class="text-base font-semibold" style="color:var(--bad-color)">—</div>
+          <div id="worst-habit-pct" class="text-[11px] mt-1" style="color:var(--text-muted)">—</div>
         </div>
-        <div class="card bg-zinc-900 border border-emerald-400/10 rounded-3xl p-5">
-          <div class="text-[9px] uppercase tracking-widest text-emerald-400 mb-2">Best progress</div>
-          <div id="best-habit-name" class="text-base font-semibold text-emerald-300">—</div>
-          <div id="best-habit-pct" class="text-[11px] text-zinc-500 mt-1">—</div>
+        <div class="card th-card-good border rounded-3xl p-5">
+          <div class="text-[9px] uppercase tracking-widest mb-2" style="color:var(--accent-text)">Best progress</div>
+          <div id="best-habit-name" class="text-base font-semibold" style="color:var(--accent-text)">—</div>
+          <div id="best-habit-pct" class="text-[11px] mt-1" style="color:var(--text-muted)">—</div>
         </div>
       </div>
 
       <!-- Good Habits Overview -->
-      <div class="card bg-zinc-900 border border-emerald-400/10 rounded-3xl p-6 mb-3">
-        <div class="text-[11px] text-zinc-500 uppercase tracking-widest mb-4">Good habits overview</div>
+      <div class="card th-card-good border rounded-3xl p-6 mb-3">
+        <div class="text-[11px] uppercase tracking-widest mb-4" style="color:var(--text-muted)">Good habits overview</div>
         <div id="habits-overview-list"></div>
       </div>
 
       <!-- Signal Card -->
-<div class="card bg-zinc-900 border border-emerald-400/20 rounded-3xl p-6 mb-3">
-  <div class="text-[11px] text-zinc-500 uppercase tracking-widest mb-4">Signal</div>
+      <div class="card th-card-accent border rounded-3xl p-6 mb-3">
+        <div class="text-[11px] uppercase tracking-widest mb-4" style="color:var(--text-muted)">Signal</div>
 
-  <!-- Sparkline -->
-  <div class="text-[9px] text-zinc-500 uppercase tracking-widest mb-2">4-week trend</div>
-  <div id="signal-sparkline" class="flex items-end gap-1 mb-1" style="height:56px;"></div>
-  <div id="signal-week-labels" class="flex gap-1 mb-4"></div>
+        <div class="text-[9px] uppercase tracking-widest mb-2" style="color:var(--text-muted)">4-week trend</div>
+        <div id="signal-sparkline" class="flex items-end gap-1 mb-1" style="height:56px;"></div>
+        <div id="signal-week-labels" class="flex gap-1 mb-4"></div>
 
-  <div class="h-px bg-zinc-800 mb-4"></div>
+        <div class="h-px mb-4 th-divider"></div>
 
-  <!-- Score + message -->
-  <div class="flex items-center gap-4 mb-3">
-    <div id="signal-score-circle" class="flex items-center justify-center rounded-full flex-shrink-0" style="width:48px;height:48px;border:2.5px solid #10b981;">
-      <span id="signal-score-num" class="text-sm font-semibold text-emerald-400"></span>
-    </div>
-    <div id="signal-message" class="text-xs text-zinc-300 italic leading-relaxed"></div>
-  </div>
+        <div class="flex items-center gap-4 mb-3">
+          <div id="signal-score-circle" class="flex items-center justify-center rounded-full flex-shrink-0" style="width:48px;height:48px;border:2.5px solid var(--score-border);">
+            <span id="signal-score-num" class="text-sm font-semibold" style="color:var(--score-text)"></span>
+          </div>
+          <div id="signal-message" class="text-xs italic leading-relaxed" style="color:var(--text-secondary)"></div>
+        </div>
 
-  <!-- Badges -->
-  <div class="grid grid-cols-3 gap-1 mb-3">
-    <div id="badge-trend" class="text-[10px] py-1.5 px-2 rounded-full text-center flex items-center justify-center bg-emerald-400/10 text-emerald-400"></div>
-    <div id="badge-week" class="text-[10px] py-1.5 px-2 rounded-full text-center flex items-center justify-center bg-yellow-400/10 text-yellow-400"></div>
-    <div id="badge-improved" class="text-[10px] py-1.5 px-2 rounded-full text-center flex items-center justify-center bg-blue-400/10 text-blue-400"></div>
-  </div>
+        <div class="grid grid-cols-3 gap-1 mb-3">
+          <div id="badge-trend" class="text-[10px] py-1.5 px-2 rounded-full text-center flex items-center justify-center" style="background:var(--badge-trend-bg);color:var(--badge-trend-text)"></div>
+          <div id="badge-week" class="text-[10px] py-1.5 px-2 rounded-full text-center flex items-center justify-center" style="background:var(--badge-week-bg);color:var(--badge-week-text)"></div>
+          <div id="badge-improved" class="text-[10px] py-1.5 px-2 rounded-full text-center flex items-center justify-center" style="background:var(--badge-imp-bg);color:var(--badge-imp-text)"></div>
+        </div>
 
-  <!-- Next to fall -->
-  <div id="next-to-fall-section" class="hidden rounded-xl p-3" style="background:#1f1f23;">
-    <div class="flex justify-between items-baseline mb-1">
-      <div>
-        <div class="text-[9px] text-zinc-500 uppercase tracking-widest">Next to fall</div>
-        <div id="ntf-name" class="text-sm font-medium text-red-400"></div>
+        <div id="next-to-fall-section" class="hidden rounded-xl p-3" style="background:var(--ntf-bg);">
+          <div class="flex justify-between items-baseline mb-1">
+            <div>
+              <div class="text-[9px] uppercase tracking-widest" style="color:var(--text-muted)">Next to fall</div>
+              <div id="ntf-name" class="text-sm font-medium" style="color:var(--bad-color)"></div>
+            </div>
+            <div id="ntf-count" class="text-xs" style="color:var(--bad-color)"></div>
+          </div>
+          <div id="ntf-motivation" class="text-[10px] italic mb-2" style="color:var(--text-muted)"></div>
+          <div id="ntf-boxes" class="grid gap-1" style="grid-template-columns:repeat(10,1fr);"></div>
+        </div>
       </div>
-      <div id="ntf-count" class="text-xs text-red-400"></div>
-    </div>
-    <div id="ntf-motivation" class="text-[10px] text-zinc-500 italic mb-2"></div>
-    <div id="ntf-boxes" class="grid gap-1" style="grid-template-columns:repeat(10,1fr);"></div>
-  </div>
-</div>
 
-      <!-- Graveyard -->
+      <!-- Conquered -->
       <div id="graveyard-section" class="hidden mb-5">
-        <div class="card bg-zinc-900 border border-zinc-700 rounded-3xl p-6 text-center">
-          <div class="text-sm font-semibold text-zinc-400 tracking-wide mb-1">R.I.P Old Me</div>
-          <div class="text-[9px] text-zinc-600 mb-4">Habits eliminated at 90%+ this month</div>
+        <div class="card th-conquered-card border rounded-3xl p-6 text-center">
+          <div class="text-sm font-semibold tracking-wide mb-1" style="color:var(--text-secondary)">Conquered</div>
+          <div class="text-[9px] mb-4" style="color:var(--text-muted)">Habits eliminated at 90%+ this month</div>
           <div id="graveyard-list" class="flex flex-wrap gap-2 justify-center"></div>
         </div>
       </div>
 
       <!-- Coaching Button -->
       <div class="mt-6">
-        <button id="coaching-btn" onclick="requestCoaching()" class="w-full bg-emerald-400 hover:bg-emerald-300 text-black font-semibold py-4 px-6 rounded-3xl transition-colors text-sm tracking-wide">
+        <button id="coaching-btn" onclick="requestCoaching()" class="w-full font-semibold py-4 px-6 rounded-3xl transition-colors text-sm tracking-wide title-font" style="background:var(--btn-bg);color:var(--btn-text);border:none;">
           Get AI Coaching
         </button>
-        <div id="coaching-output" class="hidden mt-4 bg-zinc-900 border border-emerald-400/20 rounded-3xl p-6 text-zinc-200 text-sm leading-relaxed"></div>
+        <div id="coaching-output" class="hidden mt-4 th-coaching-output border rounded-3xl p-6 text-sm leading-relaxed"></div>
       </div>
 
       <!-- Footer -->
       <div class="mt-10 text-center">
-        <div class="inline-flex items-center gap-x-1.5 text-[10px] text-zinc-500 bg-zinc-900 px-4 h-8 rounded-2xl">
+        <div class="inline-flex items-center gap-x-1.5 text-[10px] th-footer-badge px-4 h-8 rounded-2xl">
           <span class="relative flex h-2 w-2">
-            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-            <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style="background:var(--accent)"></span>
+            <span class="relative inline-flex rounded-full h-2 w-2" style="background:var(--accent)"></span>
           </span>
           LIVE from Google Sheets
         </div>
@@ -206,14 +427,36 @@
   <!-- Focus Habit Selector Modal -->
   <div id="focus-modal" class="hidden" style="position:fixed;inset:0;z-index:200;display:none;align-items:flex-end;justify-content:center;">
     <div onclick="closeFocusModal()" style="position:absolute;inset:0;background:rgba(0,0,0,0.6);"></div>
-    <div id="focus-modal-sheet" style="position:relative;width:100%;max-width:480px;background:#18181b;border-top-left-radius:24px;border-top-right-radius:24px;padding:24px 20px 40px;transform:translateY(100%);transition:transform 0.3s ease;">
-      <div style="width:40px;height:4px;background:#3f3f46;border-radius:4px;margin:0 auto 20px;"></div>
-      <div id="focus-modal-title" class="text-sm font-semibold uppercase tracking-widest text-zinc-400 mb-4">Select habit</div>
+    <div id="focus-modal-sheet" class="th-modal-bg" style="position:relative;width:100%;max-width:480px;border-top-left-radius:24px;border-top-right-radius:24px;padding:24px 20px 40px;transform:translateY(100%);transition:transform 0.3s ease;">
+      <div class="th-modal-handle" style="width:40px;height:4px;border-radius:4px;margin:0 auto 20px;"></div>
+      <div id="focus-modal-title" class="text-sm font-semibold uppercase tracking-widest mb-4" style="color:var(--text-muted)">Select habit</div>
       <div id="focus-modal-options"></div>
     </div>
   </div>
 
   <script>
+    // ── THEME ──────────────────────────────────────────────
+    const savedTheme = localStorage.getItem('hbt-theme') || 'dark';
+    applyTheme(savedTheme);
+
+    function applyTheme(theme) {
+      const btn = document.getElementById('theme-toggle');
+      if (theme === 'light') {
+        document.documentElement.classList.add('light');
+        if (btn) btn.textContent = '☾ Dark';
+      } else {
+        document.documentElement.classList.remove('light');
+        if (btn) btn.textContent = '☀ Light';
+      }
+      localStorage.setItem('hbt-theme', theme);
+    }
+
+    function toggleTheme() {
+      const isLight = document.documentElement.classList.contains('light');
+      applyTheme(isLight ? 'dark' : 'light');
+    }
+
+    // ── QUOTES ────────────────────────────────────────────
     let appData = null;
     const dailyQuotes = [
       {text: "We are what we repeatedly do. Excellence is not an act, but a habit.", author: "Will Durant"},
@@ -252,42 +495,40 @@
       const now = new Date();
       const start = new Date(2026, 0, 1);
       const dayOfYear = Math.floor((now - start) / 86400000);
-      const index = dayOfYear % dailyQuotes.length;
-      return dailyQuotes[index];
+      return dailyQuotes[dayOfYear % dailyQuotes.length];
     }
-window.scrollTo(0, 0);
 
-// Pull to refresh
-let startY = 0;
-let pulling = false;
-document.addEventListener('touchstart', e => {
-  if (window.scrollY === 0) {
-    startY = e.touches[0].clientY;
-    pulling = true;
-  }
-}, { passive: true });
-document.addEventListener('touchmove', e => {
-  if (!pulling) return;
-  const diff = e.touches[0].clientY - startY;
-  if (diff > 80) {
-    document.body.style.opacity = '1';
-  }
-}, { passive: true });
-document.addEventListener('touchend', e => {
-  if (!pulling) return;
-  pulling = false;
-  const diff = e.changedTouches[0].clientY - startY;
-  if (diff > 80) {
-    document.getElementById('header-dots').innerHTML =
-      '<div class="w-2.5 h-2.5 bg-emerald-400 rounded-full" style="animation:bounce-dot 1.2s ease-in-out infinite;animation-delay:0s"></div>' +
-      '<div class="w-2.5 h-2.5 bg-emerald-400 rounded-full" style="animation:bounce-dot 1.2s ease-in-out infinite;animation-delay:0.2s"></div>' +
-      '<div class="w-2.5 h-2.5 bg-emerald-400 rounded-full" style="animation:bounce-dot 1.2s ease-in-out infinite;animation-delay:0.4s"></div>';
-    setTimeout(() => window.location.reload(), 600);
-  } else {
-    document.body.style.opacity = '1';
-  }
-});
+    window.scrollTo(0, 0);
+
+    // ── PULL TO REFRESH ───────────────────────────────────
+    let startY = 0, pulling = false;
+    document.addEventListener('touchstart', e => {
+      if (window.scrollY === 0) { startY = e.touches[0].clientY; pulling = true; }
+    }, { passive: true });
+    document.addEventListener('touchmove', e => {
+      if (!pulling) return;
+      if (e.touches[0].clientY - startY > 80) document.body.style.opacity = '1';
+    }, { passive: true });
+    document.addEventListener('touchend', e => {
+      if (!pulling) return;
+      pulling = false;
+      const diff = e.changedTouches[0].clientY - startY;
+      if (diff > 80) {
+        const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
+        document.getElementById('header-dots').innerHTML =
+          [0, 0.2, 0.4].map(d =>
+            `<div class="w-2.5 h-2.5 rounded-full" style="background:${accent};animation:bounce-dot 1.2s ease-in-out infinite;animation-delay:${d}s"></div>`
+          ).join('');
+        setTimeout(() => window.location.reload(), 600);
+      } else {
+        document.body.style.opacity = '1';
+      }
+    });
+
     document.addEventListener('DOMContentLoaded', () => {
+      // re-apply so toggle button text renders correctly after DOM ready
+      applyTheme(localStorage.getItem('hbt-theme') || 'dark');
+
       const now = new Date();
       const dateEl = document.getElementById('today-date');
       if (dateEl) dateEl.textContent = now.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
@@ -297,6 +538,7 @@ document.addEventListener('touchend', e => {
       loadApp();
     });
 
+    // ── LOAD APP ──────────────────────────────────────────
     async function loadApp() {
       try {
         const res = await fetch('/api/get-habits');
@@ -318,50 +560,50 @@ document.addEventListener('touchend', e => {
         document.getElementById('weekly-percent-top').textContent = data.percent;
         document.getElementById('signal-message').textContent = '"' + data.signal + '"';
 
-// Sparkline
-const sparkline = document.getElementById('signal-sparkline');
-const weekLabels = document.getElementById('signal-week-labels');
-sparkline.innerHTML = '';
-weekLabels.innerHTML = '';
-const trend = data.weeklyTrend || [];
-const maxPct = Math.max(...trend, 1);
-trend.forEach((pct, i) => {
-  const isRecent = i >= trend.length - 2;
-  const bar = document.createElement('div');
-  bar.style.cssText = 'flex:1;border-radius:3px;height:' + Math.max(10, Math.round((pct / maxPct) * 100)) + '%;background:' + (isRecent ? '#10b981' : '#3f3f46') + ';min-height:4px;';
-  sparkline.appendChild(bar);
-  const lbl = document.createElement('div');
-  lbl.style.cssText = 'flex:1;font-size:9px;color:#52525b;text-align:center;font-family:sans-serif;';
-  lbl.textContent = 'W' + (i + 1);
-  weekLabels.appendChild(lbl);
-});
+        // Sparkline
+        const sparkline = document.getElementById('signal-sparkline');
+        const weekLabels = document.getElementById('signal-week-labels');
+        sparkline.innerHTML = '';
+        weekLabels.innerHTML = '';
+        const trend = data.weeklyTrend || [];
+        const maxPct = Math.max(...trend, 1);
+        trend.forEach((pct, i) => {
+          const isRecent = i >= trend.length - 2;
+          const bar = document.createElement('div');
+          bar.style.cssText = 'flex:1;border-radius:3px;height:' + Math.max(10, Math.round((pct / maxPct) * 100)) + '%;background:' + (isRecent ? 'var(--spark-recent)' : 'var(--spark-old)') + ';min-height:4px;';
+          sparkline.appendChild(bar);
+          const lbl = document.createElement('div');
+          lbl.style.cssText = 'flex:1;font-size:9px;color:var(--text-muted);text-align:center;';
+          lbl.textContent = 'W' + (i + 1);
+          weekLabels.appendChild(lbl);
+        });
 
-// Score
-const score = data.habitsOnTrack || 0;
-const total = data.totalHabits || 7;
-document.getElementById('signal-score-num').textContent = score + '/' + total;
+        // Score
+        const score = data.habitsOnTrack || 0;
+        const total = data.totalHabits || 7;
+        document.getElementById('signal-score-num').textContent = score + '/' + total;
 
-// Badges
-const prevScore = data.prevHabitsOnTrack || 0;
-document.getElementById('badge-trend').textContent = score > prevScore ? '↑ Up from ' + prevScore + '/' + total : score === prevScore ? '→ Holding ' + score + '/' + total : '↓ Down from ' + prevScore + '/' + total;
-document.getElementById('badge-week').textContent = 'Best Week: ' + (data.bestWeek || 0) + '%';
-document.getElementById('badge-improved').textContent = data.mostImproved ? '↑ ' + data.mostImproved + ' most improved' : '—';
+        // Badges
+        const prevScore = data.prevHabitsOnTrack || 0;
+        document.getElementById('badge-trend').textContent = score > prevScore ? '↑ Up from ' + prevScore + '/' + total : score === prevScore ? '→ Holding ' + score + '/' + total : '↓ Down from ' + prevScore + '/' + total;
+        document.getElementById('badge-week').textContent = 'Best Week: ' + (data.bestWeek || 0) + '%';
+        document.getElementById('badge-improved').textContent = data.mostImproved ? '↑ ' + data.mostImproved + ' most improved' : '—';
 
-// Next to fall
-if (data.nextToFall) {
-  document.getElementById('next-to-fall-section').classList.remove('hidden');
-  document.getElementById('ntf-name').textContent = data.nextToFall;
-  document.getElementById('ntf-count').textContent = data.nextToFallDays + ' / 30 days';
-  const days = data.daysToKill || 0;
-  document.getElementById('ntf-motivation').textContent = days === 1 ? 'One more day. Finish it.' : days + ' more days and it\'s dead forever. Finish it off.';
-  const boxes = document.getElementById('ntf-boxes');
-  boxes.innerHTML = '';
-  for (let i = 0; i < 30; i++) {
-    const b = document.createElement('div');
-    b.style.cssText = 'aspect-ratio:1;border-radius:2px;height:9px;background:' + (i < data.nextToFallDays ? '#f87171' : '#2d2d2d') + ';';
-    boxes.appendChild(b);
-  }
-}
+        // Next to fall
+        if (data.nextToFall) {
+          document.getElementById('next-to-fall-section').classList.remove('hidden');
+          document.getElementById('ntf-name').textContent = data.nextToFall;
+          document.getElementById('ntf-count').textContent = data.nextToFallDays + ' / 30 days';
+          const days = data.daysToKill || 0;
+          document.getElementById('ntf-motivation').textContent = days === 1 ? 'One more day. Finish it.' : days + ' more days and it\'s dead forever. Finish it off.';
+          const boxes = document.getElementById('ntf-boxes');
+          boxes.innerHTML = '';
+          for (let i = 0; i < 30; i++) {
+            const b = document.createElement('div');
+            b.style.cssText = 'aspect-ratio:1;border-radius:2px;height:9px;background:' + (i < data.nextToFallDays ? 'var(--ntf-filled)' : 'var(--ntf-empty)') + ';';
+            boxes.appendChild(b);
+          }
+        }
 
         // Focus habits
         document.getElementById('focus-good-name').textContent = data.goodFocus;
@@ -401,22 +643,22 @@ if (data.nextToFall) {
         if (data.goodHabitStats && data.goodHabitStats.length > 0) {
           var sortedStats = data.goodHabitStats.slice().sort(function(a,b){ return b.percent - a.percent; });
           listEl.innerHTML = sortedStats.map(function(h, i) {
-            var color = h.percent >= 70 ? '#10b981' : h.percent >= 50 ? '#eab308' : '#ef4444';
-            var border = i < sortedStats.length - 1 ? 'border-bottom:1px solid #27272a;' : '';
+            var color = h.percent >= 70 ? 'var(--accent-text)' : h.percent >= 50 ? 'var(--badge-week-text)' : 'var(--bad-color)';
+            var border = i < sortedStats.length - 1 ? 'border-bottom:1px solid var(--border-default);' : '';
             return '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;' + border + '">' +
-              '<span style="font-size:13px;color:#d4d4d8;">' + h.name + '</span>' +
+              '<span style="font-size:13px;color:var(--text-secondary);">' + h.name + '</span>' +
               '<span style="font-size:13px;font-weight:500;color:' + color + ';">' + h.percent + '%</span></div>';
           }).join('');
         }
 
-        // Graveyard
+        // Conquered (was Graveyard)
         if (data.graveyard && data.graveyard.length > 0) {
           document.getElementById('graveyard-section').classList.remove('hidden');
           document.getElementById('graveyard-list').innerHTML = data.graveyard.map(function(h) {
-            return '<div class="bg-zinc-800 border border-zinc-700 rounded-2xl px-4 py-3 text-center">' +
+            return '<div class="th-conquered-item border rounded-2xl px-4 py-3 text-center">' +
               '<div class="text-xl mb-1">&#x1FAA6;</div>' +
-              '<div class="text-sm font-semibold text-zinc-300">' + h.name + '</div>' +
-              '<div class="text-[9px] text-emerald-400 mt-1">' + h.percent + '% eliminated</div></div>';
+              '<div class="text-sm font-semibold" style="color:var(--text-secondary)">' + h.name + '</div>' +
+              '<div class="text-[9px] th-conquered-pct mt-1">' + h.percent + '% eliminated</div></div>';
           }).join('');
         }
 
@@ -431,6 +673,7 @@ if (data.nextToFall) {
       }
     }
 
+    // ── CALENDAR ──────────────────────────────────────────
     function renderCalendar(data) {
       var grid = document.getElementById('calendar-grid');
       grid.innerHTML = '';
@@ -438,24 +681,28 @@ if (data.nextToFall) {
       data.week.forEach(function(day) {
         var isToday = day.isToday;
         var dayCard = document.createElement('div');
-        dayCard.className = 'day-card ' + (isToday ? 'today ' : '') + 'bg-zinc-900 border border-zinc-800 rounded-2xl p-3 w-36 md:w-full flex-shrink-0 flex flex-col gap-2';
+        dayCard.className = 'day-card ' + (isToday ? 'today ' : '') + 'rounded-2xl p-3 w-36 md:w-full flex-shrink-0 flex flex-col gap-2';
+        dayCard.style.cssText = 'background:var(--bg-card);border:1px solid var(--border-default);';
 
         var header = document.createElement('div');
         header.className = 'mb-2';
-        header.innerHTML = '<div class="text-xs font-semibold uppercase tracking-widest ' + (isToday ? 'text-emerald-400' : 'text-zinc-400') + '">' + day.day.slice(0,3) + '</div>' +
-          '<div class="text-lg font-semibold text-white">' + day.date + '</div>' +
-          (isToday ? '<div class="text-[9px] text-emerald-400 uppercase tracking-widest mt-0.5">Today</div>' : '');
+        header.innerHTML =
+          '<div class="text-xs font-semibold uppercase tracking-widest" style="color:' + (isToday ? 'var(--accent-text)' : 'var(--text-secondary)') + '">' + day.day.slice(0,3) + '</div>' +
+          '<div class="text-lg font-semibold" style="color:var(--text-primary)">' + day.date + '</div>' +
+          (isToday ? '<div class="text-[9px] uppercase tracking-widest mt-0.5" style="color:var(--accent-text)">Today</div>' : '');
         dayCard.appendChild(header);
 
         var badLabel = document.createElement('div');
-        badLabel.className = 'text-[9px] uppercase tracking-widest text-red-400 mt-1';
+        badLabel.className = 'text-[9px] uppercase tracking-widest mt-1';
+        badLabel.style.color = 'var(--bad-color)';
         badLabel.textContent = 'Avoid';
         dayCard.appendChild(badLabel);
 
         day.bad.forEach(function(habit) {
           var chip = document.createElement('div');
-          chip.className = 'habit-chip flex items-center gap-1 rounded-xl px-1.5 py-1 text-[9px] font-medium cursor-pointer ' +
-            (habit.checked ? 'bg-emerald-400/10 text-emerald-400' : 'bg-red-400/10 text-red-400');
+          var isOn = habit.checked;
+          chip.className = 'habit-chip flex items-center gap-1 rounded-xl px-1.5 py-1 text-[9px] font-medium cursor-pointer';
+          chip.style.cssText = 'background:' + (isOn ? 'var(--good-bg)' : 'var(--bad-bg)') + ';color:' + (isOn ? 'var(--accent-text)' : 'var(--bad-color)') + ';';
           chip.dataset.sheet = data.sheetName;
           chip.dataset.row = day.row;
           chip.dataset.col = habit.col;
@@ -467,14 +714,16 @@ if (data.nextToFall) {
         });
 
         var goodLabel = document.createElement('div');
-        goodLabel.className = 'text-[9px] uppercase tracking-widest text-emerald-400 mt-2';
+        goodLabel.className = 'text-[9px] uppercase tracking-widest mt-2';
+        goodLabel.style.color = 'var(--accent-text)';
         goodLabel.textContent = 'Build';
         dayCard.appendChild(goodLabel);
 
         day.good.forEach(function(habit) {
           var chip = document.createElement('div');
-          chip.className = 'habit-chip flex items-center gap-1.5 rounded-xl px-2 py-1.5 text-[10px] font-medium whitespace-normal cursor-pointer ' +
-            (habit.checked ? 'bg-emerald-400/10 text-emerald-400' : 'bg-zinc-800 text-zinc-500');
+          var isOn = habit.checked;
+          chip.className = 'habit-chip flex items-center gap-1.5 rounded-xl px-2 py-1.5 text-[10px] font-medium whitespace-normal cursor-pointer';
+          chip.style.cssText = 'background:' + (isOn ? 'var(--good-bg)' : 'var(--chip-unchecked-good-bg)') + ';color:' + (isOn ? 'var(--accent-text)' : 'var(--chip-unchecked-good-text)') + ';';
           chip.dataset.sheet = data.sheetName;
           chip.dataset.row = day.row;
           chip.dataset.col = habit.col;
@@ -494,6 +743,7 @@ if (data.nextToFall) {
       }
     }
 
+    // ── HABIT TAP ─────────────────────────────────────────
     async function handleHabitTap(e) {
       var chip = e.currentTarget;
       var sheetName = chip.dataset.sheet;
@@ -502,21 +752,16 @@ if (data.nextToFall) {
       var currentValue = chip.dataset.checked === 'true';
       var type = chip.dataset.type;
       var icon = chip.querySelector('.chip-icon');
-
       var newValue = !currentValue;
       chip.dataset.checked = newValue;
 
       if (type === 'bad') {
-        chip.className = chip.className.replace(
-          newValue ? 'bg-red-400/10 text-red-400' : 'bg-emerald-400/10 text-emerald-400',
-          newValue ? 'bg-emerald-400/10 text-emerald-400' : 'bg-red-400/10 text-red-400'
-        );
+        chip.style.background = newValue ? 'var(--good-bg)' : 'var(--bad-bg)';
+        chip.style.color = newValue ? 'var(--accent-text)' : 'var(--bad-color)';
         icon.textContent = newValue ? '\u2713' : '\u2717';
       } else {
-        chip.className = chip.className.replace(
-          newValue ? 'bg-zinc-800 text-zinc-500' : 'bg-emerald-400/10 text-emerald-400',
-          newValue ? 'bg-emerald-400/10 text-emerald-400' : 'bg-zinc-800 text-zinc-500'
-        );
+        chip.style.background = newValue ? 'var(--good-bg)' : 'var(--chip-unchecked-good-bg)';
+        chip.style.color = newValue ? 'var(--accent-text)' : 'var(--chip-unchecked-good-text)';
         icon.textContent = newValue ? '\u2713' : '\u25CB';
       }
 
@@ -524,7 +769,7 @@ if (data.nextToFall) {
         var res = await fetch('/api/toggle-habit', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ sheetName: sheetName, row: row, col: col, currentValue: currentValue })
+          body: JSON.stringify({ sheetName, row, col, currentValue })
         });
         var result = await res.json();
         if (!result.success) {
@@ -537,7 +782,7 @@ if (data.nextToFall) {
       }
     }
 
-    // Focus Modal
+    // ── FOCUS MODAL ───────────────────────────────────────
     var focusModalType = '';
 
     function openFocusModal(type) {
@@ -561,10 +806,11 @@ if (data.nextToFall) {
         var isActive = h === currentName;
         return '<button onclick="selectFocusHabit(\'' + h + '\')" ' +
           'class="w-full text-left px-4 py-3 rounded-2xl mb-2 text-sm font-medium transition-colors ' +
-          (isActive
-            ? 'bg-emerald-400/10 text-emerald-400 border border-emerald-400/30'
-            : 'bg-zinc-800 text-zinc-300 border border-zinc-700 hover:bg-zinc-700') +
-          '">' + (isActive ? '\u25CF ' : '') + h + '</button>';
+          (isActive ? 'th-modal-option-active' : 'th-modal-option-inactive') +
+          '" style="border:1px solid ' + (isActive ? 'var(--border-accent)' : 'var(--border-default)') + ';' +
+          'background:' + (isActive ? 'var(--good-bg)' : 'var(--bg-card-inner)') + ';' +
+          'color:' + (isActive ? 'var(--accent-text)' : 'var(--text-secondary)') + ';">' +
+          (isActive ? '\u25CF ' : '') + h + '</button>';
       }).join('');
 
       modal.classList.remove('hidden');
@@ -583,20 +829,17 @@ if (data.nextToFall) {
 
     async function selectFocusHabit(habitName) {
       var type = focusModalType;
-
       if (type === 'good') {
         document.getElementById('focus-good-name').textContent = habitName;
       } else {
         document.getElementById('focus-bad-name').textContent = habitName;
       }
-
       closeFocusModal();
-
       try {
         var res = await fetch('/api/update-focus', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ type: type, habitName: habitName })
+          body: JSON.stringify({ type, habitName })
         });
         var result = await res.json();
         if (result.success) { loadApp(); }
@@ -605,14 +848,12 @@ if (data.nextToFall) {
       }
     }
 
-    // AI Coaching
+    // ── AI COACHING ───────────────────────────────────────
     async function requestCoaching() {
       var btn = document.getElementById('coaching-btn');
       var output = document.getElementById('coaching-output');
-
       btn.textContent = 'Getting your coaching...';
       btn.disabled = true;
-
       try {
         var res = await fetch('/api/get-coaching', {
           method: 'POST',
@@ -630,7 +871,6 @@ if (data.nextToFall) {
         output.textContent = 'Error: ' + err.message;
         output.classList.remove('hidden');
       }
-
       btn.textContent = 'Get AI Coaching';
       btn.disabled = false;
     }
