@@ -431,7 +431,7 @@
   </div>
 <!-- Manage Habits Modal -->
 <div id="manage-modal" class="hidden" style="position:fixed;inset:0;z-index:200;display:none;align-items:flex-end;justify-content:center;">
-  <div onclick="closeManageModal()" style="position:absolute;inset:0;background:rgba(0,0,0,0.6);"></div>
+  <div onclick="closeManageModal()" style="position:absolute;inset:0;background:rgba(0,0,0,0.6);touch-action:none;"></div>
   <div id="manage-modal-sheet" class="th-modal-bg" style="position:relative;width:100%;max-width:480px;border-top-left-radius:24px;border-top-right-radius:24px;padding:24px 20px 40px;transform:translateY(100%);transition:transform 0.3s ease;max-height:80vh;overflow-y:auto;">
     <div class="th-modal-handle" style="width:40px;height:4px;border-radius:4px;margin:0 auto 20px;"></div>
     <div class="text-sm font-semibold uppercase tracking-widest mb-5" style="color:var(--text-muted)">Manage Habits</div>
@@ -442,7 +442,7 @@
 
 <!-- Confirm Action Modal -->
 <div id="confirm-modal" class="hidden" style="position:fixed;inset:0;z-index:300;display:none;align-items:flex-end;justify-content:center;">
-  <div onclick="closeConfirmModal()" style="position:absolute;inset:0;background:rgba(0,0,0,0.6);"></div>
+  <div onclick="closeConfirmModal()" style="position:absolute;inset:0;background:rgba(0,0,0,0.6);touch-action:none;"></div>
   <div id="confirm-modal-sheet" class="th-modal-bg" style="position:relative;width:100%;max-width:480px;border-top-left-radius:24px;border-top-right-radius:24px;padding:24px 20px 40px;transform:translateY(100%);transition:transform 0.3s ease;">
     <div class="th-modal-handle" style="width:40px;height:4px;border-radius:4px;margin:0 auto 20px;"></div>
     <div id="confirm-habit-name" class="text-base font-semibold mb-5" style="color:var(--text-primary)"></div>
