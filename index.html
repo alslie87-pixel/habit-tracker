@@ -328,9 +328,9 @@
       <!-- Weekly Calendar -->
       <div class="mb-5">
         <div class="flex items-center justify-between mb-4">
-          <h2 class="title-font text-lg font-semibold tracking-tight" style="color:var(--text-primary)">This Week</h2>
-          <span id="calendar-status" class="text-[10px]" style="color:var(--text-muted)">Loading...</span>
-        </div>
+        <h2 class="title-font text-lg font-semibold tracking-tight" style="color:var(--text-primary)">This Week</h2>
+        <button onclick="openManageModal()" style="background:var(--bg-card);border:1px solid var(--border-default);color:var(--text-secondary);border-radius:100px;padding:4px 12px;font-size:13px;font-weight:600;cursor:pointer;">+/−</button>
+      </div>
         <div class="calendar-scroll overflow-x-auto md:overflow-visible pb-4">
           <div id="calendar-grid" class="flex gap-3 min-w-max md:min-w-0 md:grid md:grid-cols-7"></div>
         </div>
@@ -425,7 +425,32 @@
 
     </div>
   </div>
+<!-- Manage Habits Modal -->
+<div id="manage-modal" class="hidden" style="position:fixed;inset:0;z-index:200;display:none;align-items:flex-end;justify-content:center;">
+  <div onclick="closeManageModal()" style="position:absolute;inset:0;background:rgba(0,0,0,0.6);"></div>
+  <div id="manage-modal-sheet" class="th-modal-bg" style="position:relative;width:100%;max-width:480px;border-top-left-radius:24px;border-top-right-radius:24px;padding:24px 20px 40px;transform:translateY(100%);transition:transform 0.3s ease;max-height:80vh;overflow-y:auto;">
+    <div class="th-modal-handle" style="width:40px;height:4px;border-radius:4px;margin:0 auto 20px;"></div>
+    <div class="text-sm font-semibold uppercase tracking-widest mb-5" style="color:var(--text-muted)">Manage Habits</div>
+    <div id="manage-bad-section" class="mb-6"></div>
+    <div id="manage-good-section"></div>
+  </div>
+</div>
 
+<!-- Confirm Action Modal -->
+<div id="confirm-modal" class="hidden" style="position:fixed;inset:0;z-index:300;display:none;align-items:flex-end;justify-content:center;">
+  <div onclick="closeConfirmModal()" style="position:absolute;inset:0;background:rgba(0,0,0,0.6);"></div>
+  <div id="confirm-modal-sheet" class="th-modal-bg" style="position:relative;width:100%;max-width:480px;border-top-left-radius:24px;border-top-right-radius:24px;padding:24px 20px 40px;transform:translateY(100%);transition:transform 0.3s ease;">
+    <div class="th-modal-handle" style="width:40px;height:4px;border-radius:4px;margin:0 auto 20px;"></div>
+    <div id="confirm-habit-name" class="text-base font-semibold mb-5" style="color:var(--text-primary)"></div>
+    <div id="confirm-input-row" class="hidden mb-4">
+      <input id="confirm-new-name" type="text" placeholder="New habit name..." maxlength="30"
+        style="width:100%;padding:12px 16px;border-radius:12px;border:1px solid var(--border-default);background:var(--bg-card-inner);color:var(--text-primary);font-size:14px;outline:none;">
+    </div>
+    <button id="confirm-replace-btn" onclick="confirmAction('replace')" class="w-full text-sm font-semibold py-3 rounded-2xl mb-2" style="background:var(--good-bg);color:var(--accent-text);border:1px solid var(--border-accent);">Replace</button>
+    <button id="confirm-remove-btn" onclick="confirmAction('remove')" class="w-full text-sm font-semibold py-3 rounded-2xl mb-2" style="background:var(--bad-bg);color:var(--bad-color);border:1px solid var(--border-bad);">Remove</button>
+    <button onclick="closeConfirmModal()" class="w-full text-sm font-semibold py-3 rounded-2xl" style="background:var(--bg-card-inner);color:var(--text-muted);border:1px solid var(--border-default);">Cancel</button>
+  </div>
+</div>
   <!-- Focus Habit Selector Modal -->
   <div id="focus-modal" class="hidden" style="position:fixed;inset:0;z-index:200;display:none;align-items:flex-end;justify-content:center;">
     <div onclick="closeFocusModal()" style="position:absolute;inset:0;background:rgba(0,0,0,0.6);"></div>
@@ -884,7 +909,161 @@ dayCard.appendChild(header);
       btn.textContent = 'Get AI Coaching';
       btn.disabled = false;
     }
+// ── MANAGE HABITS ─────────────────────────────────────
+var manageTarget = { type: '', name: '' };
 
+function openManageModal() {
+  if (!appData) return;
+  var modal = document.getElementById('manage-modal');
+  var sheet = document.getElementById('manage-modal-sheet');
+
+  renderManageSection('bad');
+  renderManageSection('good');
+
+  modal.classList.remove('hidden');
+  modal.style.display = 'flex';
+  setTimeout(function() { sheet.style.transform = 'translateY(0)'; }, 10);
+}
+
+function closeManageModal() {
+  var sheet = document.getElementById('manage-modal-sheet');
+  sheet.style.transform = 'translateY(100%)';
+  setTimeout(function() {
+    document.getElementById('manage-modal').classList.add('hidden');
+    document.getElementById('manage-modal').style.display = 'none';
+  }, 300);
+}
+
+function renderManageSection(type) {
+  var habits = type === 'bad'
+    ? appData.week[0] && appData.week[0].bad ? appData.week[0].bad : []
+    : appData.week[0] && appData.week[0].good ? appData.week[0].good : [];
+
+  var count  = habits.length;
+  var max    = 7;
+  var label  = type === 'bad' ? 'Bad Habits' : 'Good Habits';
+  var el     = document.getElementById('manage-' + type + '-section');
+
+  var addDisabled = count >= max;
+  var addStyle = addDisabled
+    ? 'opacity:0.4;cursor:not-allowed;'
+    : 'cursor:pointer;';
+
+  var html = '<div class="flex items-center justify-between mb-3">' +
+    '<span style="font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted)">' + label + ' (' + count + '/' + max + ')</span>' +
+    '<button onclick="openAddHabit(\'' + type + '\')" style="font-size:12px;font-weight:700;padding:4px 12px;border-radius:100px;background:var(--good-bg);color:var(--accent-text);border:1px solid var(--border-accent);' + addStyle + '"' + (addDisabled ? ' disabled' : '') + '>+ Add</button>' +
+    '</div>';
+
+  habits.forEach(function(h) {
+    html += '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border-default);">' +
+      '<span style="font-size:14px;color:var(--text-primary)">' + h.name + '</span>' +
+      '<button onclick="openConfirmModal(\'' + type + '\',\'' + h.name.replace(/'/g, "\\'") + '\')" ' +
+      'style="font-size:12px;font-weight:700;padding:4px 12px;border-radius:100px;background:var(--bad-bg);color:var(--bad-color);border:1px solid var(--border-bad);cursor:pointer;">−</button>' +
+      '</div>';
+  });
+
+  el.innerHTML = html;
+}
+
+function openAddHabit(type) {
+  closeManageModal();
+  manageTarget = { type: type, name: '' };
+
+  var modal = document.getElementById('confirm-modal');
+  var sheet = document.getElementById('confirm-modal-sheet');
+
+  document.getElementById('confirm-habit-name').textContent = 'Add ' + (type === 'bad' ? 'bad' : 'good') + ' habit';
+  document.getElementById('confirm-input-row').classList.remove('hidden');
+  document.getElementById('confirm-new-name').value = '';
+  document.getElementById('confirm-replace-btn').textContent = 'Add';
+  document.getElementById('confirm-replace-btn').style.display = '';
+  document.getElementById('confirm-remove-btn').style.display = 'none';
+
+  modal.classList.remove('hidden');
+  modal.style.display = 'flex';
+  setTimeout(function() {
+    sheet.style.transform = 'translateY(0)';
+    document.getElementById('confirm-new-name').focus();
+  }, 10);
+}
+
+function openConfirmModal(type, name) {
+  closeManageModal();
+  manageTarget = { type: type, name: name };
+
+  var modal = document.getElementById('confirm-modal');
+  var sheet = document.getElementById('confirm-modal-sheet');
+
+  document.getElementById('confirm-habit-name').textContent = '"' + name + '"';
+  document.getElementById('confirm-input-row').classList.add('hidden');
+  document.getElementById('confirm-new-name').value = '';
+  document.getElementById('confirm-replace-btn').textContent = 'Replace';
+  document.getElementById('confirm-replace-btn').style.display = '';
+  document.getElementById('confirm-remove-btn').style.display = '';
+
+  modal.classList.remove('hidden');
+  modal.style.display = 'flex';
+  setTimeout(function() { sheet.style.transform = 'translateY(0)'; }, 10);
+}
+
+function closeConfirmModal() {
+  var sheet = document.getElementById('confirm-modal-sheet');
+  sheet.style.transform = 'translateY(100%)';
+  setTimeout(function() {
+    document.getElementById('confirm-modal').classList.add('hidden');
+    document.getElementById('confirm-modal').style.display = 'none';
+  }, 300);
+}
+
+async function confirmAction(action) {
+  var type    = manageTarget.type;
+  var name    = manageTarget.name;
+  var newName = document.getElementById('confirm-new-name').value.trim();
+
+  // If replace/add — show input if not already visible, require name
+  if (action === 'replace' && !name) {
+    // This is an Add action
+    if (!newName) {
+      document.getElementById('confirm-input-row').classList.remove('hidden');
+      document.getElementById('confirm-new-name').focus();
+      return;
+    }
+    action = 'add';
+  }
+
+  if (action === 'replace') {
+    document.getElementById('confirm-input-row').classList.remove('hidden');
+    if (!newName) {
+      document.getElementById('confirm-new-name').focus();
+      return;
+    }
+  }
+
+  var btn = document.getElementById(action === 'remove' ? 'confirm-remove-btn' : 'confirm-replace-btn');
+  btn.textContent = '...';
+  btn.disabled = true;
+
+  try {
+    var res = await fetch('/api/update-config', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action, type, name, newName: newName || undefined })
+    });
+    var result = await res.json();
+    if (result.success) {
+      closeConfirmModal();
+      loadApp();
+    } else {
+      alert(result.error || 'Something went wrong');
+      btn.textContent = action === 'remove' ? 'Remove' : 'Replace';
+      btn.disabled = false;
+    }
+  } catch (err) {
+    alert('Error: ' + err.message);
+    btn.textContent = action === 'remove' ? 'Remove' : 'Replace';
+    btn.disabled = false;
+  }
+}
     // Auto-refresh every 5 minutes
     setTimeout(function() { window.location.reload(); }, 300000);
   </script>
