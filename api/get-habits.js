@@ -61,8 +61,8 @@ module.exports = async (req, res) => {
     });
     const signal = signalRes.data.values || [];
 
-    // Extend column range to cover all habit columns including ghosts
-    const lastColIdx    = Math.max(badColIdx, goodColIdx) - 1;
+    // Always fetch at least to column T (index 19) to cover Q/R/S/T formula columns
+    const lastColIdx    = Math.max(badColIdx, goodColIdx - 1, 19);
     const lastColLetter = colIndexToLetter(lastColIdx);
 
     const monthRes = await sheets.spreadsheets.values.get({
