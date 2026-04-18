@@ -852,11 +852,12 @@ dayCard.appendChild(header);
       }).join('');
 
       modal.classList.remove('hidden');
-      modal.style.display = 'flex';
-      setTimeout(function() { sheet.style.transform = 'translateY(0)'; }, 10);
-    }
+  modal.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+  setTimeout(function() { sheet.style.transform = 'translateY(0)'; }, 10);
+}
 
-    function closeFocusModal() {
+function closeConfirmModal() {
       var sheet = document.getElementById('focus-modal-sheet');
       sheet.style.transform = 'translateY(100%)';
       setTimeout(function() {
@@ -934,10 +935,11 @@ function closeManageModal() {
   setTimeout(function() {
     document.getElementById('manage-modal').classList.add('hidden');
     document.getElementById('manage-modal').style.display = 'none';
+    document.body.style.overflow = '';
   }, 300);
 }
 
-function renderManageSection(type) {
+function renderManageSection
   var habits = type === 'bad'
     ? appData.week[0] && appData.week[0].bad ? appData.week[0].bad : []
     : appData.week[0] && appData.week[0].good ? appData.week[0].good : [];
@@ -1015,10 +1017,11 @@ function closeConfirmModal() {
   setTimeout(function() {
     document.getElementById('confirm-modal').classList.add('hidden');
     document.getElementById('confirm-modal').style.display = 'none';
+    document.body.style.overflow = '';
   }, 300);
 }
 
-async function confirmAction(action) {
+async function confirmAction
   var type    = manageTarget.type;
   var name    = manageTarget.name;
   var newName = document.getElementById('confirm-new-name').value.trim();
