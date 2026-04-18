@@ -758,14 +758,14 @@
       chip.dataset.checked = newValue;
 
       if (type === 'bad') {
-        chip.style.background = newValue ? 'var(--good-bg)' : 'var(--bad-bg)';
-        chip.style.color = newValue ? 'var(--accent-text)' : 'var(--bad-color)';
-        icon.textContent = newValue ? '\u2713' : '\u2717';
-      } else {
-        chip.style.background = newValue ? 'var(--good-bg)' : 'var(--chip-unchecked-good-bg)';
-        chip.style.color = newValue ? 'var(--accent-text)' : 'var(--chip-unchecked-good-text)';
-        icon.textContent = newValue ? '\u2713' : '\u25CB';
-      }
+  chip.style.background = newValue ? 'var(--good-bg)' : 'var(--bad-bg)';
+  chip.style.color = newValue ? '#fff' : 'var(--bad-color)';
+  icon.textContent = newValue ? '\u2713' : '\u2717';
+} else {
+  chip.style.background = newValue ? 'var(--good-bg)' : 'var(--chip-unchecked-good-bg)';
+  chip.style.color = newValue ? '#fff' : 'var(--chip-unchecked-good-text)';
+  icon.textContent = newValue ? '\u2713' : '\u25CB';
+}
 
       try {
         var res = await fetch('/api/toggle-habit', {
