@@ -853,7 +853,8 @@ dayCard.appendChild(header);
 
       modal.classList.remove('hidden');
   modal.style.display = 'flex';
-  document.body.style.overflow = 'hidden';
+  document.body.style.position = 'fixed';
+  document.body.style.width = '100%';
   setTimeout(function() { sheet.style.transform = 'translateY(0)'; }, 10);
 }
 
@@ -935,7 +936,8 @@ function closeManageModal() {
   setTimeout(function() {
     document.getElementById('manage-modal').classList.add('hidden');
     document.getElementById('manage-modal').style.display = 'none';
-    document.body.style.overflow = '';
+    document.body.style.position = '';
+    document.body.style.width = '';
   }, 300);
 }
 
@@ -1008,6 +1010,8 @@ function openConfirmModal(type, name) {
 
   modal.classList.remove('hidden');
   modal.style.display = 'flex';
+  document.body.style.position = 'fixed';
+  document.body.style.width = '100%';
   setTimeout(function() { sheet.style.transform = 'translateY(0)'; }, 10);
 }
 
@@ -1017,7 +1021,8 @@ function closeConfirmModal() {
   setTimeout(function() {
     document.getElementById('confirm-modal').classList.add('hidden');
     document.getElementById('confirm-modal').style.display = 'none';
-    document.body.style.overflow = '';
+    document.body.style.position = '';
+    document.body.style.width = '';
   }, 300);
 }
 
