@@ -689,9 +689,13 @@
         var header = document.createElement('div');
         header.className = 'mb-2';
         header.innerHTML =
-          '<div class="text-xs font-semibold uppercase tracking-widest" style="color:' + (isToday ? 'var(--accent-text)' : 'var(--text-secondary)') + '">' + day.day.slice(0,3) + '</div>' +
-          '<div class="text-lg font-semibold" style="color:var(--text-primary)">' + day.date + '</div>' +
-          (isToday ? '<div class="text-[9px] uppercase tracking-widest mt-0.5" style="color:var(--accent-text)">Today</div>' : '');
+  '<div class="flex items-start justify-between">' +
+    '<div>' +
+      '<div class="text-xs font-semibold uppercase tracking-widest" style="color:' + (isToday ? 'var(--accent-text)' : 'var(--text-secondary)') + '">' + day.day.slice(0,3) + '</div>' +
+      '<div class="text-lg font-semibold" style="color:var(--text-primary)">' + day.date + '</div>' +
+    '</div>' +
+    (isToday ? '<div class="text-[9px] uppercase tracking-widest px-2 py-0.5 rounded-full" style="color:var(--accent-text);background:var(--good-bg);border:1px solid var(--border-accent);">Today</div>' : '') +
+  '</div>';
         dayCard.appendChild(header);
 
         var badLabel = document.createElement('div');
