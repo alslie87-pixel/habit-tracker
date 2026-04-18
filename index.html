@@ -34,13 +34,14 @@
       --chip-unchecked-good-text: #555570;
       --score-border:   #7b61ff;
       --score-text:     #c084fc;
-      --badge-trend-bg: rgba(123,97,255,0.1);
+      --badge-trend-bg: #1a1630;
       --badge-trend-text: #a78bfa;
-      --badge-week-bg:  rgba(234,179,8,0.1);
-      --badge-week-text: #fbbf24;
-      --badge-imp-bg:   rgba(96,165,250,0.1);
-      --badge-imp-text: #60a5fa;
+      --badge-week-bg:  #1a1630;
+      --badge-week-text: #a78bfa;
+      --badge-imp-bg:   #1a1630;
+      --badge-imp-text: #a78bfa;
       --ntf-bg:         #0f0f18;
+      --ntf-border:     rgba(123,97,255,0.2);
       --ntf-filled:     #f87171;
       --ntf-empty:      #2a2a3a;
       --conquered-border: #2a2a32;
@@ -82,6 +83,7 @@
       --badge-imp-bg:   rgba(232,132,154,0.1);
       --badge-imp-text: #b06070;
       --ntf-bg:         #fff5f7;
+      --ntf-border:     rgba(232,132,154,0.2);
       --ntf-filled:     #e8849a;
       --ntf-empty:      #f5e0e4;
       --conquered-border: #f0ddd8;
@@ -235,7 +237,7 @@
           <div id="badge-week" class="text-[10px] py-1.5 px-2 rounded-full text-center flex items-center justify-center" style="background:var(--badge-week-bg);color:var(--badge-week-text)"></div>
           <div id="badge-improved" class="text-[10px] py-1.5 px-2 rounded-full text-center flex items-center justify-center" style="background:var(--badge-imp-bg);color:var(--badge-imp-text)"></div>
         </div>
-        <div id="next-to-fall-section" class="hidden rounded-xl p-3" style="background:var(--ntf-bg);">
+        <div id="next-to-fall-section" class="hidden rounded-xl p-3" style="background:var(--ntf-bg);border:1px solid var(--ntf-border);">
           <div class="flex justify-between items-baseline mb-1">
             <div>
               <div class="text-[9px] uppercase tracking-widest" style="color:var(--text-muted)">Next to fall</div>
