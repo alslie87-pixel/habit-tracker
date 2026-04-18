@@ -689,12 +689,12 @@
         var header = document.createElement('div');
 header.className = 'mb-2';
 header.innerHTML =
-  '<div class="flex items-start justify-between">' +
+  '<div style="display:flex;align-items:flex-start;justify-content:space-between;min-height:42px;">' +
     '<div>' +
-      '<div class="text-xs font-semibold uppercase tracking-widest" style="color:' + (isToday ? 'var(--accent-text)' : 'var(--text-secondary)') + '">' + day.day.slice(0,3) + '</div>' +
-      '<div class="text-lg font-semibold" style="color:var(--text-primary);line-height:1.2">' + day.date + '</div>' +
+      '<div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:' + (isToday ? 'var(--accent-text)' : 'var(--text-secondary)') + '">' + day.day.slice(0,3) + '</div>' +
+      '<div style="font-size:18px;font-weight:600;line-height:1.2;color:var(--text-primary)">' + day.date + '</div>' +
     '</div>' +
-    (isToday ? '<div style="font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#ef4444;animation:today-pulse 2s ease-in-out infinite;">TODAY</div>' : '<div style="width:36px"></div>') +
+    '<div style="font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#ef4444;' + (isToday ? 'animation:today-pulse 2s ease-in-out infinite;' : 'visibility:hidden;') + '">TODAY</div>' +
   '</div>';
 dayCard.appendChild(header);
 
