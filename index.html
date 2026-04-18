@@ -464,7 +464,7 @@
   <script>
     // ── THEME ──────────────────────────────────────────────
     const savedTheme = localStorage.getItem('hbt-theme') || 'dark';
-    applyTheme(savedTheme);
+      if (savedTheme === 'light') document.documentElement.classList.add('light');
 
     function applyTheme(theme) {
       const btn = document.getElementById('theme-toggle');
@@ -553,7 +553,7 @@
     });
 
     document.addEventListener('DOMContentLoaded', () => {
-      // re-apply so toggle button text renders correctly after DOM ready
+      
       applyTheme(localStorage.getItem('hbt-theme') || 'dark');
 
       const now = new Date();
@@ -716,10 +716,10 @@
         dayCard.style.cssText = 'background:var(--bg-card);border:1px solid var(--border-default);';
 
         var header = document.createElement('div');
-header.className = 'mb-2';
-header.innerHTML =
-  '<div style="display:flex;align-items:flex-start;justify-content:space-between;min-height:42px;">' +
-    '<div>' +
+        header.className = 'mb-2';
+        header.innerHTML =
+      '<div style="display:flex;align-items:flex-start;justify-content:space-between;min-height:42px;">' +
+     '<div>' +
       '<div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:' + (isToday ? 'var(--accent-text)' : 'var(--text-secondary)') + '">' + day.day.slice(0,3) + '</div>' +
       '<div style="font-size:18px;font-weight:600;line-height:1.2;color:var(--text-primary)">' + day.date + '</div>' +
     '</div>' +
@@ -791,14 +791,14 @@ dayCard.appendChild(header);
       chip.dataset.checked = newValue;
 
       if (type === 'bad') {
-  chip.style.background = newValue ? 'var(--good-bg)' : 'var(--bad-bg)';
-  chip.style.color = newValue ? '#fff' : 'var(--bad-color)';
-  icon.textContent = newValue ? '\u2713' : '\u2717';
-} else {
-  chip.style.background = newValue ? 'var(--good-bg)' : 'var(--chip-unchecked-good-bg)';
-  chip.style.color = newValue ? '#fff' : 'var(--chip-unchecked-good-text)';
-  icon.textContent = newValue ? '\u2713' : '\u25CB';
-}
+      chip.style.background = newValue ? 'var(--good-bg)' : 'var(--bad-bg)';
+      chip.style.color = newValue ? '#fff' : 'var(--bad-color)';
+      icon.textContent = newValue ? '\u2713' : '\u2717';
+    } else {
+      chip.style.background = newValue ? 'var(--good-bg)' : 'var(--chip-unchecked-good-bg)';
+      chip.style.color = newValue ? '#fff' : 'var(--chip-unchecked-good-text)';
+      icon.textContent = newValue ? '\u2713' : '\u25CB';
+    }
 
       try {
         var res = await fetch('/api/toggle-habit', {
