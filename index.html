@@ -831,8 +831,8 @@ dayCard.appendChild(header);
       var options = document.getElementById('focus-modal-options');
 
       var habits = type === 'good'
-        ? ['Brush Teeth', 'Read', 'Build', 'Train', 'Sleep', 'Meditate', 'Journal']
-        : ['No SoMe', 'No Alcohol', 'No Sugar', 'No Smoking', 'No Junk', 'No Porn'];
+        ? (appData.week[0] ? appData.week[0].good.map(function(h){ return h.name; }) : [])
+        : (appData.week[0] ? appData.week[0].bad.map(function(h){ return h.name; }) : []);
 
       title.textContent = type === 'good' ? 'Choose habit to build' : 'Choose habit to eliminate';
 
