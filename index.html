@@ -905,18 +905,22 @@ function closeConfirmModal() {
 function addPullToClose(sheet, closeFn) {
   var startY = 0;
   var isDragging = false;
+  var canPull = false;
 
   function onTouchStart(e) {
     startY = e.touches[0].clientY;
     isDragging = true;
+    canPull = sheet.scrollTop === 0;
     sheet.style.transition = 'none';
   }
 
   function onTouchMove(e) {
     if (!isDragging) return;
     var diff = e.touches[0].clientY - startY;
-    if (diff > 0) {
+    if (canPull && diff > 0) {
       sheet.style.transform = 'translateY(' + diff + 'px)';
+    } else if (diff < 0) {
+      canPull = false;
     }
   }
 
@@ -925,7 +929,7 @@ function addPullToClose(sheet, closeFn) {
     isDragging = false;
     sheet.style.transition = 'transform 0.3s ease';
     var diff = e.changedTouches[0].clientY - startY;
-    if (diff > 80) {
+    if (canPull && diff > 80) {
       closeFn();
     } else {
       sheet.style.transform = 'translateY(0)';
