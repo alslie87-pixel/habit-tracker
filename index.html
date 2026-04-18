@@ -327,9 +327,10 @@
     }
 
     function toggleTheme() {
-      const isLight = document.documentElement.classList.contains('light');
-      applyTheme(isLight ? 'dark' : 'light');
-    }
+  const isLight = document.documentElement.classList.contains('light');
+  applyTheme(isLight ? 'dark' : 'light');
+  rebuildSparkline();
+}
 
     // ── QUOTES ────────────────────────────────────────────
     let appData = null;
@@ -942,6 +943,30 @@ function addPullToClose(sheet, closeFn) {
   sheet.addEventListener('touchstart', onTouchStart, { passive: true });
   sheet.addEventListener('touchmove', onTouchMove, { passive: true });
   sheet.addEventListener('touchend', onTouchEnd, { passive: true });
+}
+    function rebuildSparkline() {
+  if (!appData || !appData.weeklyTrend) return;
+  const sparkline = document.getElementById('signal-sparkline');
+  const weekLabels = document.getElementById('signal-week-labels');
+  if (!sparkline || !weekLabels) return;
+  sparkline.innerHTML = '';
+  weekLabels.innerHTML = '';
+  const trend = appData.weeklyTrend;
+  const maxPct = Math.max(...trend, 1);
+  const isLight = document.documentElement.classList.contains('light');
+  const recentColor = isLight ? '#d06080' : '#7b61ff';
+  const oldColor    = isLight ? '#f0d0d8' : '#2a2a38';
+  const mutedColor  = isLight ? '#c09090' : '#555568';
+  trend.forEach((pct, i) => {
+    const isRecent = i >= trend.length - 2;
+    const bar = document.createElement('div');
+    bar.style.cssText = 'flex:1;border-radius:3px;height:' + Math.max(10, Math.round((pct / maxPct) * 100)) + '%;background:' + (isRecent ? recentColor : oldColor) + ';min-height:4px;';
+    sparkline.appendChild(bar);
+    const lbl = document.createElement('div');
+    lbl.style.cssText = 'flex:1;font-size:9px;color:' + mutedColor + ';text-align:center;font-family:sans-serif;';
+    lbl.textContent = 'W' + (i + 1);
+    weekLabels.appendChild(lbl);
+  });
 }
     // Auto-refresh every 5 minutes
     setTimeout(function() { window.location.reload(); }, 300000);
