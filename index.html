@@ -601,8 +601,8 @@
         trend.forEach((pct, i) => {
         const isRecent = i >= trend.length - 2;
         const isLight = document.documentElement.classList.contains('light');
-        const recentColor = isLight ? '#e8849a' : '#7b61ff';
-        const oldColor    = isLight ? '#f5d0d8' : '#2a2a38';
+        const recentColor = isLight ? '#d06080' : '#7b61ff';
+        const oldColor    = isLight ? '#f0d0d8' : '#2a2a38';
         const mutedColor  = isLight ? '#c09090' : '#555568';
         const bar = document.createElement('div');
         bar.style.cssText = 'flex:1;border-radius:3px;height:' + Math.max(10, Math.round((pct / maxPct) * 100)) + '%;background:' + (isRecent ? recentColor : oldColor) + ';min-height:4px;';
