@@ -858,7 +858,7 @@ dayCard.appendChild(header);
   setTimeout(function() { sheet.style.transform = 'translateY(0)'; }, 10);
 }
 
-function closeConfirmModal() {
+function closeFocusModal() {
       var sheet = document.getElementById('focus-modal-sheet');
       sheet.style.transform = 'translateY(100%)';
       setTimeout(function() {
@@ -941,7 +941,7 @@ function closeManageModal() {
   }, 300);
 }
 
-function renderManageSection
+function renderManageSection(type) {
   var habits = type === 'bad'
     ? appData.week[0] && appData.week[0].bad ? appData.week[0].bad : []
     : appData.week[0] && appData.week[0].good ? appData.week[0].good : [];
