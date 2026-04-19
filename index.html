@@ -68,6 +68,11 @@
       --bad-color:      #d06080;
       --bad-bg:         rgba(232,132,154,0.1);
       --good-bg:        #e8849a;
+      --good-color:     #5a8a60;
+      --good-color-bg:  #eef6ee;
+      --good-color-border: rgba(90,138,96,0.25);
+      --chip-unchecked-good-bg: #eef6ee;
+      --chip-unchecked-good-text: #5a8a60;
       --text-primary:   #3a2030;
       --text-secondary: #7a5060;
       --text-muted:     #c09090;
@@ -76,15 +81,15 @@
       --chip-unchecked-good-text: #c09090;
       --score-border:   #e8849a;
       --score-text:     #d06080;
-      --badge-trend-bg: rgba(232,132,154,0.1);
-      --badge-trend-text: #d06080;
-      --badge-week-bg:  rgba(232,132,154,0.1);
-      --badge-week-text: #c06878;
-      --badge-imp-bg:   rgba(232,132,154,0.1);
-      --badge-imp-text: #b06070;
+      --badge-trend-bg: #eef6ee;
+      --badge-trend-text: #5a8a60;
+      --badge-week-bg:  #eef6ee;
+      --badge-week-text: #5a8a60;
+      --badge-imp-bg:   #eef6ee;
+      --badge-imp-text: #5a8a60;
       --ntf-bg:         #fff5f7;
       --ntf-border:     rgba(232,132,154,0.2);
-      --ntf-filled:     #e8849a;
+      --ntf-filled:     #5a8a60;
       --ntf-empty:      #f5e0e4;
       --conquered-border: #f0ddd8;
       --btn-bg:         linear-gradient(135deg, #e8849a, #f4c0cc);
@@ -175,12 +180,12 @@
       <div id="focus-building" class="card th-card-good border rounded-3xl p-6 mb-3">
         <div class="flex justify-between items-center mb-3">
           <span id="focus-good-name" onclick="openFocusModal('good')" class="text-lg font-semibold cursor-pointer transition-colors" style="color:var(--text-primary)">—</span>
-          <span id="focus-good-count" class="text-sm" style="color:var(--accent-text)">0 / 30</span>
+          <span id="focus-good-count" class="text-sm" style="color:var(--good-color,var(--accent-text))">0 / 30</span>
         </div>
         <div class="h-2 rounded-full overflow-hidden mb-3" style="background:var(--border-default)">
-          <div id="focus-good-bar" class="h-full rounded-full transition-all" style="width:0%;background:var(--accent)"></div>
+          <div id="focus-good-bar" class="h-full rounded-full transition-all" style="width:0%;background:var(--good-color,var(--accent))"></div>
         </div>
-        <div class="text-[11px]" style="color:var(--accent-text)">Progress: building</div>
+        <div class="text-[11px]" style="color:var(--good-color,var(--accent-text))">Progress: building</div>
         <div id="focus-good-msg" class="text-[11px] mt-0.5" style="color:var(--text-muted)">Keep showing up.</div>
       </div>
       <div id="focus-eliminating" class="card th-card-bad border rounded-3xl p-6 mb-5">
@@ -211,10 +216,10 @@
           <div id="worst-habit-pct" class="text-[11px] mt-1" style="color:var(--text-muted)">—</div>
         </div>
         <div class="card th-card-good border rounded-3xl p-5">
-          <div class="text-[9px] uppercase tracking-widest mb-2" style="color:var(--accent-text)">Best progress</div>
-          <div id="best-habit-name" class="text-base font-semibold" style="color:var(--accent-text)">—</div>
-          <div id="best-habit-pct" class="text-[11px] mt-1" style="color:var(--text-muted)">—</div>
-        </div>
+         <div class="text-[9px] uppercase tracking-widest mb-2" style="color:var(--good-color,var(--accent-text))">Best progress</div>
+         <div id="best-habit-name" class="text-base font-semibold" style="color:var(--good-color,var(--accent-text))">—</div>
+         <div id="best-habit-pct" class="text-[11px] mt-1" style="color:var(--text-muted)">—</div>
+       </div>
       </div>
       <div class="card th-card-good border rounded-3xl p-6 mb-3">
         <div class="text-[11px] uppercase tracking-widest mb-4" style="color:var(--text-muted)">Good habits overview</div>
@@ -523,7 +528,7 @@
         if (data.goodHabitStats && data.goodHabitStats.length > 0) {
           var sortedStats = data.goodHabitStats.slice().sort(function(a,b){ return b.percent - a.percent; });
           listEl.innerHTML = sortedStats.map(function(h, i) {
-            var color = h.percent >= 70 ? 'var(--accent-text)' : h.percent >= 50 ? 'var(--badge-week-text)' : 'var(--bad-color)';
+            var color = h.percent >= 70 ? 'var(--good-color,var(--accent-text))' : h.percent >= 50 ? 'var(--badge-week-text)' : 'var(--bad-color)';
             var border = i < sortedStats.length - 1 ? 'border-bottom:1px solid var(--border-default);' : '';
             return '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;' + border + '">' +
               '<span style="font-size:13px;color:var(--text-secondary);">' + h.name + '</span>' +
@@ -606,7 +611,7 @@
         day.good.forEach(function(habit) {
           var chip = document.createElement('div');
           var isOn = habit.checked;
-          chip.className = 'habit-chip flex items-center gap-1.5 rounded-xl px-2 py-1.5 text-[10px] font-medium whitespace-normal cursor-pointer';
+          chip.className = 'habit-chip flex items-center gap-1.5 rounded-xl px-2 py-1 text-[9px] font-medium cursor-pointer';
           chip.style.cssText = 'background:' + (isOn ? 'var(--good-bg)' : 'var(--chip-unchecked-good-bg)') + ';color:' + (isOn ? '#fff' : 'var(--chip-unchecked-good-text)') + ';';
           chip.dataset.sheet = data.sheetName;
           chip.dataset.row = day.row;
