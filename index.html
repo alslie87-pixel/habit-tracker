@@ -604,7 +604,8 @@
 
         var goodLabel = document.createElement('div');
         goodLabel.className = 'text-[9px] uppercase tracking-widest mt-2';
-        goodLabel.style.color = 'var(--accent-text)';
+        const isLightMode = document.documentElement.classList.contains('light');
+        goodLabel.style.color = isLightMode ? '#5a8a60' : 'var(--accent-text)';
         goodLabel.textContent = 'Build';
         dayCard.appendChild(goodLabel);
 
