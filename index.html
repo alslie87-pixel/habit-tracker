@@ -129,6 +129,17 @@
     .th-coaching-output { background: var(--bg-card); border-color: var(--border-accent); color: var(--text-secondary); }
     .th-footer-badge { background: var(--bg-card); color: var(--text-muted); }
     html.light .th-big-num { font-family: 'Playfair Display', serif; }
+    .focus-habit-name::before {
+  content: '▴▾';
+  display: inline-flex;
+  flex-direction: column;
+  font-size: 11px;
+  line-height: 0.7;
+  letter-spacing: -1px;
+  margin-right: 6px;
+  opacity: 0.6;
+  vertical-align: middle;
+}
     @keyframes bounce-dot { 0%,80%,100% { transform: translateY(0); opacity: 0.4; } 40% { transform: translateY(-6px); opacity: 1; } }
     @keyframes today-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
   </style>
@@ -180,7 +191,7 @@
       <div id="focus-building" class="card th-card-good border rounded-3xl p-6 mb-3">
   <div class="flex justify-between items-center mb-3">
     <span style="display:inline-flex;flex-direction:column;align-items:center;gap:0px;margin-right:6px;line-height:1;color:var(--text-primary);"><span style="font-size:11px;line-height:1;">▴</span><span style="font-size:11px;line-height:1;">▾</span></span>—</span>
-    <span id="focus-good-count" class="text-sm" style="color:var(--good-color,var(--accent-text))">0 / 30</span>
+    <span id="focus-good-name" onclick="openFocusModal('good')" class="focus-habit-name text-lg font-semibold cursor-pointer transition-colors" style="color:var(--text-primary)">—</span>
   </div>
   <div class="h-2 rounded-full overflow-hidden mb-3" style="background:var(--border-default)">
     <div id="focus-good-bar" class="h-full rounded-full transition-all" style="width:0%;background:var(--good-color,var(--accent))"></div>
@@ -191,7 +202,7 @@
       <div id="focus-eliminating" class="card th-card-bad border rounded-3xl p-6 mb-5">
   <div class="flex justify-between items-center mb-3">
     <span style="display:inline-flex;flex-direction:column;align-items:center;gap:0px;margin-right:6px;line-height:1;color:var(--text-primary);"><span style="font-size:11px;line-height:1;">▴</span><span style="font-size:11px;line-height:1;">▾</span></span>—</span>
-    <span id="focus-bad-count" class="text-sm" style="color:var(--bad-color)">0 / 30</span>
+    <span id="focus-bad-name" onclick="openFocusModal('bad')" class="focus-habit-name text-lg font-semibold cursor-pointer transition-colors" style="color:var(--text-primary)">—</span>
   </div>
   <div class="h-2 rounded-full overflow-hidden mb-3" style="direction:rtl;background:var(--border-default)">
     <div id="focus-bad-bar" class="h-full rounded-full transition-all" style="width:0%;background:var(--bad-color)"></div>
@@ -493,7 +504,7 @@
         }
 
         // Focus habits
-        document.getElementById('focus-good-name').lastChild.textContent = data.goodFocus;
+        document.getElementById('focus-good-name').textContent = data.goodFocus;
         document.getElementById('focus-good-count').textContent = data.goodCount + ' / 30';
         var goodPct = Math.min(Math.round((data.goodCount / 30) * 100), 100);
         document.getElementById('focus-good-bar').style.width = goodPct + '%';
@@ -504,7 +515,7 @@
                    data.goodCount < 30 ? 'Almost there. Lock it in.' : 'Habit formed. You did it.';
         document.getElementById('focus-good-msg').textContent = 'Day ' + data.goodCount + '. ' + gMsg;
 
-        document.getElementById('focus-bad-name').lastChild.textContent = data.badFocus;
+        document.getElementById('focus-bad-name').textContent = data.badFocus;
         document.getElementById('focus-bad-count').textContent = data.badCount + ' / 30';
         var badPct = Math.min(Math.round((data.badCount / 30) * 100), 100);
         document.getElementById('focus-bad-bar').style.width = badPct + '%';
@@ -744,9 +755,9 @@ options.innerHTML = habits.map(function(h) {
     async function selectFocusHabit(habitName) {
       var type = focusModalType;
       if (type === 'good') {
-        document.getElementById('focus-good-name').lastChild.textContent = habitName;
+        document.getElementById('focus-good-name').textContent = habitName;
       } else {
-        document.getElementById('focus-bad-name').lastChild.textContent = habitName;
+        document.getElementById('focus-bad-name').textContent = habitName;
       }
       closeFocusModal();
       try {
