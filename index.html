@@ -338,6 +338,7 @@
   const isLight = document.documentElement.classList.contains('light');
   applyTheme(isLight ? 'dark' : 'light');
   rebuildSparkline();
+  if (appData) renderCalendar(appData);
 }
 
     // ── QUOTES ────────────────────────────────────────────
