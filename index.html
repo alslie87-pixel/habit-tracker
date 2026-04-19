@@ -123,7 +123,7 @@
     .th-divider { background: var(--border-default); }
     .th-modal-bg { background: var(--bg-card); }
     .th-modal-handle { background: var(--border-default); }
-    .th-modal-option-active { background: var(--good-bg) !important; color: var(--accent-text) !important; border-color: var(--border-accent) !important; }
+    .th-modal-option-active { opacity: 1; }
     .th-modal-option-inactive { background: var(--bg-card-inner) !important; color: var(--text-secondary) !important; border-color: var(--border-default) !important; }
     .th-modal-option-inactive:hover { background: var(--bg-card-deep) !important; }
     .th-coaching-output { background: var(--bg-card); border-color: var(--border-accent); color: var(--text-secondary); }
@@ -724,10 +724,20 @@ var currentName = nameEl ? nameEl.querySelector('span:last-child')
 
 options.innerHTML = habits.map(function(h) {
   var isActive = h === currentName;
-  var isGood       = type === 'good';
-  var borderColor  = isActive ? (isGood ? 'var(--border-accent)' : 'var(--border-bad)')  : 'var(--border-default)';
-  var bgColor      = isActive ? (isGood ? 'var(--good-bg)'       : 'var(--bad-bg)')      : 'var(--bg-card-inner)';
-  var textColor    = isActive ? (isGood ? 'var(--accent-text)'   : 'var(--bad-color)')   : 'var(--text-secondary)';
+  var isGood      = type === 'good';
+var isLight     = document.documentElement.classList.contains('light');
+var activeBorder = isGood
+  ? (isLight ? 'rgba(90,138,96,0.4)'   : 'var(--border-accent)')
+  : 'var(--border-bad)';
+var activeBg     = isGood
+  ? (isLight ? '#eef6ee'               : 'var(--good-bg)')
+  : 'var(--bad-bg)';
+var activeText   = isGood
+  ? (isLight ? '#5a8a60'               : 'var(--accent-text)')
+  : 'var(--bad-color)';
+var borderColor  = isActive ? activeBorder : 'var(--border-default)';
+var bgColor      = isActive ? activeBg     : 'var(--bg-card-inner)';
+var textColor    = isActive ? activeText   : 'var(--text-secondary)';
   var arrows       = '<span style="display:inline-flex;flex-direction:column;align-items:center;gap:1px;line-height:1;opacity:0.4;"><span style="font-size:8px;line-height:1;">▴</span><span style="font-size:8px;line-height:1;">▾</span></span>';
   return '<button onclick="selectFocusHabit(\'' + h + '\')" '
     + 'class="w-full text-left px-4 py-3 rounded-2xl mb-2 text-sm font-medium transition-colors '
