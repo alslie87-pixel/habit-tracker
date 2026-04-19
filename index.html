@@ -632,9 +632,18 @@
       });
 
       var todayCard = grid.querySelector('.today');
-      if (todayCard) {
-        setTimeout(function() { todayCard.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' }); }, 300);
-      }
+if (todayCard) {
+  setTimeout(function() {
+    var container = todayCard.parentElement.parentElement;
+    var cardLeft = todayCard.offsetLeft;
+    var cardWidth = todayCard.offsetWidth;
+    var containerWidth = container.offsetWidth;
+    container.scrollTo({
+      left: cardLeft - (containerWidth / 2) + (cardWidth / 2),
+      behavior: 'smooth'
+    });
+  }, 300);
+}
     }
 
     // ── HABIT TAP ─────────────────────────────────────────
