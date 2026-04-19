@@ -702,9 +702,11 @@ title.textContent = type === 'good'
   ? 'Choose habit to build'
   : 'Choose habit to eliminate';
 
-var currentName = type === 'good'
-  ? document.getElementById('focus-good-name').textContent
-  : document.getElementById('focus-bad-name').textContent;
+var nameEl = document.getElementById(type === 'good' ? 'focus-good-name' : 'focus-bad-name');
+var currentName = nameEl ? nameEl.querySelector('span:last-child') 
+  ? nameEl.querySelector('span:last-child').textContent.trim()
+  : nameEl.textContent.replace(/[▴▾]/g, '').trim()
+  : '';
 
 options.innerHTML = habits.map(function(h) {
   var isActive = h === currentName;
