@@ -493,7 +493,7 @@
         }
 
         // Focus habits
-        document.getElementById('focus-good-name').textContent = data.goodFocus;
+        document.getElementById('focus-good-name').lastChild.textContent = data.goodFocus;
         document.getElementById('focus-good-count').textContent = data.goodCount + ' / 30';
         var goodPct = Math.min(Math.round((data.goodCount / 30) * 100), 100);
         document.getElementById('focus-good-bar').style.width = goodPct + '%';
@@ -504,7 +504,7 @@
                    data.goodCount < 30 ? 'Almost there. Lock it in.' : 'Habit formed. You did it.';
         document.getElementById('focus-good-msg').textContent = 'Day ' + data.goodCount + '. ' + gMsg;
 
-        document.getElementById('focus-bad-name').textContent = data.badFocus;
+        document.getElementById('focus-bad-name').lastChild.textContent = data.badFocus;
         document.getElementById('focus-bad-count').textContent = data.badCount + ' / 30';
         var badPct = Math.min(Math.round((data.badCount / 30) * 100), 100);
         document.getElementById('focus-bad-bar').style.width = badPct + '%';
@@ -744,9 +744,9 @@ options.innerHTML = habits.map(function(h) {
     async function selectFocusHabit(habitName) {
       var type = focusModalType;
       if (type === 'good') {
-        document.getElementById('focus-good-name').textContent = habitName;
+        document.getElementById('focus-good-name').lastChild.textContent = habitName;
       } else {
-        document.getElementById('focus-bad-name').textContent = habitName;
+        document.getElementById('focus-bad-name').lastChild.textContent = habitName;
       }
       closeFocusModal();
       try {
