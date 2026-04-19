@@ -695,32 +695,38 @@ if (todayCard) {
       var options = document.getElementById('focus-modal-options');
 
       var habits = type === 'good'
-        ? (appData.week[0] ? appData.week[0].good.map(function(h){ return h.name; }) : [])
-        : (appData.week[0] ? appData.week[0].bad.map(function(h){ return h.name; }) : []);
+  ? (appData.week[0] ? appData.week[0].good.map(h => h.name) : [])
+  : (appData.week[0] ? appData.week[0].bad.map(h => h.name)  : []);
 
-      title.textContent = type === 'good' ? 'Choose habit to build' : 'Choose habit to eliminate';
+title.textContent = type === 'good'
+  ? 'Choose habit to build'
+  : 'Choose habit to eliminate';
 
-      var currentName = type === 'good'
-        ? document.getElementById('focus-good-name').textContent
-        : document.getElementById('focus-bad-name').textContent;
+var currentName = type === 'good'
+  ? document.getElementById('focus-good-name').textContent
+  : document.getElementById('focus-bad-name').textContent;
 
-      options.innerHTML = habits.map(function(h) {
-        var isActive = h === currentName;
-        return '<button onclick="selectFocusHabit(\'' + h + '\')" ' +
-          'class="w-full text-left px-4 py-3 rounded-2xl mb-2 text-sm font-medium transition-colors ' +
-          (isActive ? 'th-modal-option-active' : 'th-modal-option-inactive') +
-          '" style="border:1px solid ' + (isActive ? 'var(--border-accent)' : 'var(--border-default)') + ';' +
-          'background:' + (isActive ? 'var(--good-bg)' : 'var(--bg-card-inner)') + ';' +
-          'color:' + (isActive ? 'var(--accent-text)' : 'var(--text-secondary)') + ';">' +
-          (isActive ? '\u25CF ' : '') + h + '</button>';
-      }).join('');
+options.innerHTML = habits.map(function(h) {
+  var isActive = h === currentName;
+  var borderColor  = isActive ? 'var(--border-accent)'   : 'var(--border-default)';
+  var bgColor      = isActive ? 'var(--good-bg)'         : 'var(--bg-card-inner)';
+  var textColor    = isActive ? 'var(--accent-text)'     : 'var(--text-secondary)';
+  var arrows       = '<span style="display:inline-flex;flex-direction:column;align-items:center;gap:1px;line-height:1;opacity:0.4;"><span style="font-size:8px;line-height:1;">▴</span><span style="font-size:8px;line-height:1;">▾</span></span>';
+  return '<button onclick="selectFocusHabit(\'' + h + '\')" '
+    + 'class="w-full text-left px-4 py-3 rounded-2xl mb-2 text-sm font-medium transition-colors '
+    + (isActive ? 'th-modal-option-active' : 'th-modal-option-inactive') + '" '
+    + 'style="border:1px solid ' + borderColor + ';background:' + bgColor + ';color:' + textColor + ';display:flex;align-items:center;justify-content:space-between;">'
+    + '<span>' + (isActive ? '\u25CF ' : '') + h + '</span>'
+    + arrows
+    + '</button>';
+}).join('');
 
-      modal.classList.remove('hidden');
-      modal.style.display = 'flex';
-      document.body.style.position = 'fixed';
-      document.body.style.width = '100%';
-      setTimeout(function() { sheet.style.transform = 'translateY(0)'; }, 10);
-    }
+          modal.classList.remove('hidden');
+          modal.style.display = 'flex';
+          document.body.style.position = 'fixed';
+          document.body.style.width = '100%';
+          setTimeout(function() { sheet.style.transform = 'translateY(0)'; }, 10);
+        }
 
     function closeFocusModal() {
       var sheet = document.getElementById('focus-modal-sheet');
