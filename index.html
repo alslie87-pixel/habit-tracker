@@ -319,19 +319,20 @@
   <script>
     // ── THEME ──────────────────────────────────────────────
     const savedTheme = localStorage.getItem('hbt-theme') || 'dark';
-    if (savedTheme === 'light') document.documentElement.classList.add('light');
+      if (savedTheme === 'light') document.documentElement.classList.add('light');
+      if (savedTheme === 'dark') document.documentElement.classList.remove('light');
 
     function applyTheme(theme) {
       const btn = document.getElementById('theme-toggle');
-      if (theme === 'light') {
-        document.documentElement.classList.add('light');
+        if (theme === 'light') {
+         document.documentElement.classList.add('light');
         if (btn) btn.textContent = '☾ Dark';
       } else {
         document.documentElement.classList.remove('light');
         if (btn) btn.textContent = '☀ Light';
-      }
-      localStorage.setItem('hbt-theme', theme);
     }
+  localStorage.setItem('hbt-theme', theme);
+}
 
     function toggleTheme() {
   const isLight = document.documentElement.classList.contains('light');
