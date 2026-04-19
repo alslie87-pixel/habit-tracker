@@ -190,38 +190,22 @@
       </div>
       <div id="focus-building" class="card th-card-good border rounded-3xl p-6 mb-3">
   <div class="flex justify-between items-center mb-3">
-  <span onclick="openFocusModal('good')" class="inline-flex items-center gap-2 cursor-pointer">
-    <svg width="10" height="16" viewBox="0 0 10 16" fill="none" xmlns="http://www.w3.org/2000/svg" style="opacity:0.6;flex-shrink:0;color:var(--text-primary);">
-      <path d="M5 1L1 6H9L5 1Z" fill="currentColor"/>
-      <path d="M5 15L9 10H1L5 15Z" fill="currentColor"/>
-    </svg>
-    <span id="focus-good-name" class="text-lg font-semibold transition-colors" style="color:var(--text-primary)">—</span>
-  </span>
-  <span id="focus-good-count" class="text-sm" style="color:var(--good-color,var(--accent-text))">0 / 30</span>
-</div>
+    <span onclick="openFocusModal('good')" class="inline-flex items-center gap-2 cursor-pointer">
+      <svg width="10" height="14" viewBox="0 0 10 14" fill="none" xmlns="http://www.w3.org/2000/svg" style="opacity:0.6;flex-shrink:0;color:var(--text-primary);">
+        <path d="M5 0L0 5H10L5 0Z" fill="currentColor"/>
+        <path d="M5 14L10 9H0L5 14Z" fill="currentColor"/>
+      </svg>
+      <span id="focus-good-name" class="text-lg font-semibold" style="color:var(--text-primary)">—</span>
+    </span>
+    <span id="focus-good-count" class="text-sm" style="color:var(--good-color,var(--accent-text))">0 / 30</span>
+  </div>
   <div class="h-2 rounded-full overflow-hidden mb-3" style="background:var(--border-default)">
     <div id="focus-good-bar" class="h-full rounded-full transition-all" style="width:0%;background:var(--good-color,var(--accent))"></div>
   </div>
   <div class="text-[11px]" style="color:var(--good-color,var(--accent-text))">Progress: building</div>
   <div id="focus-good-msg" class="text-[11px] mt-0.5" style="color:var(--text-muted)">Keep showing up.</div>
 </div>
-      <div id="focus-eliminating" class="card th-card-bad border rounded-3xl p-6 mb-5">
-  <div class="flex justify-between items-center mb-3">
-  <span onclick="openFocusModal('bad')" class="inline-flex items-center gap-2 cursor-pointer">
-    <svg width="10" height="16" viewBox="0 0 10 16" fill="none" xmlns="http://www.w3.org/2000/svg" style="opacity:0.6;flex-shrink:0;color:var(--text-primary);">
-      <path d="M5 1L1 6H9L5 1Z" fill="currentColor"/>
-      <path d="M5 15L9 10H1L5 15Z" fill="currentColor"/>
-    </svg>
-    <span id="focus-bad-name" class="text-lg font-semibold transition-colors" style="color:var(--text-primary)">—</span>
-  </span>
-  <span id="focus-bad-count" class="text-sm" style="color:var(--bad-color)">0 / 30</span>
-</div>
-  <div class="h-2 rounded-full overflow-hidden mb-3" style="direction:rtl;background:var(--border-default)">
-    <div id="focus-bad-bar" class="h-full rounded-full transition-all" style="width:0%;background:var(--bad-color)"></div>
-  </div>
-  <div class="text-[11px]" style="color:var(--accent-text)">Progress: eliminating</div>
-  <div id="focus-bad-msg" class="text-[11px] mt-0.5" style="color:var(--text-muted)">Stay strong.</div>
-</div>
+      <div id="focus-eliminating" 
       <div class="mb-5">
         <div class="flex items-center justify-between mb-4">
           <h2 class="title-font text-lg font-semibold tracking-tight" style="color:var(--text-primary)">This Week</h2>
