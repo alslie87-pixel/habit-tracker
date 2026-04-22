@@ -236,19 +236,40 @@
 </div>
       </div>
       <div class="card th-card-good border rounded-3xl p-6 mb-3">
-        <div class="text-[11px] uppercase tracking-widest mb-4" style="color:var(--text-muted)">Good habits overview</div>
-        <div id="habits-overview-list"></div>
+  <div class="text-[11px] uppercase tracking-widest mb-4" style="color:var(--text-muted)">Good habits overview</div>
+  <div id="habits-overview-list"></div>
+  <div class="h-px mt-4 mb-4 th-divider"></div>
+  <div class="text-[9px] uppercase tracking-widest mb-2" style="color:var(--text-muted)">4-week trend</div>
+  <div id="signal-sparkline" class="flex items-end gap-1 mb-1" style="height:56px;"></div>
+  <div id="signal-week-labels" class="flex gap-1 mb-0"></div>
+</div>
+
+<div class="card th-card-accent border rounded-3xl p-6 mb-3">
+  <div class="text-[11px] uppercase tracking-widest mb-4" style="color:var(--text-muted)">Signal</div>
+  <div class="h-px mb-4 th-divider"></div>
+  <div class="flex items-center gap-4 mb-3">
+    <div id="signal-score-circle" class="flex items-center justify-center rounded-full flex-shrink-0" style="width:48px;height:48px;border:2.5px solid var(--score-border);">
+      <span id="signal-score-num" class="text-sm font-semibold" style="color:var(--score-text)"></span>
+    </div>
+    <div id="signal-message" class="text-xs italic leading-relaxed" style="color:var(--text-secondary)"></div>
+  </div>
+  <div class="grid grid-cols-3 gap-1 mb-3">
+    <div id="badge-trend" class="text-[10px] py-1.5 px-2 rounded-full text-center flex items-center justify-center" style="background:var(--badge-trend-bg);color:var(--badge-trend-text)"></div>
+    <div id="badge-week" class="text-[10px] py-1.5 px-2 rounded-full text-center flex items-center justify-center" style="background:var(--badge-week-bg);color:var(--badge-week-text)"></div>
+    <div id="badge-improved" class="text-[10px] py-1.5 px-2 rounded-full text-center flex items-center justify-center" style="background:var(--badge-imp-bg);color:var(--badge-imp-text)"></div>
+  </div>
+  <div id="next-to-fall-section" class="hidden rounded-xl p-3" style="background:var(--ntf-bg);border:1px solid var(--ntf-border);">
+    <div class="flex justify-between items-baseline mb-1">
+      <div>
+        <div class="text-[9px] uppercase tracking-widest" style="color:var(--text-muted)">Next to fall</div>
+        <div id="ntf-name" class="text-sm font-medium" style="color:var(--bad-color)"></div>
       </div>
-      <div class="card th-card-accent border rounded-3xl p-6 mb-3">
-        <div class="text-[11px] uppercase tracking-widest mb-4" style="color:var(--text-muted)">Signal</div>
-        <div class="text-[9px] uppercase tracking-widest mb-2" style="color:var(--text-muted)">4-week trend</div>
-        <div id="signal-sparkline" class="flex items-end gap-1 mb-1" style="height:56px;"></div>
-        <div id="signal-week-labels" class="flex gap-1 mb-4"></div>
-        <div class="h-px mb-4 th-divider"></div>
-        <div class="flex items-center gap-4 mb-3">
-          <div id="signal-score-circle" class="flex items-center justify-center rounded-full flex-shrink-0" style="width:48px;height:48px;border:2.5px solid var(--score-border);">
-            <span id="signal-score-num" class="text-sm font-semibold" style="color:var(--score-text)"></span>
-          </div>
+      <div id="ntf-count" class="text-xs" style="color:var(--bad-color)"></div>
+    </div>
+    <div id="ntf-motivation" class="text-[10px] italic mb-2" style="color:var(--text-muted)"></div>
+    <div id="ntf-boxes" class="grid gap-1" style="grid-template-columns:repeat(10,1fr);"></div>
+  </div>
+</div>
           <div id="signal-message" class="text-xs italic leading-relaxed" style="color:var(--text-secondary)"></div>
         </div>
         <div class="grid grid-cols-3 gap-1 mb-3">
