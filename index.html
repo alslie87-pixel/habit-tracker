@@ -237,7 +237,7 @@
       </div>
       <div class="card th-card-good border rounded-3xl p-6 mb-3">
   <div class="flex items-center justify-between mb-4">
-    <div id="overview-title" class="text-[11px] uppercase tracking-widest" style="color:var(--text-primary)">Good habits overview</div>
+    <div id="overview-title" class="text-[11px] uppercase tracking-widest" style="color:var(--good-color,var(--accent-text))">Good habits overview</div>
     <button onclick="toggleOverview()" style="border:1px solid var(--border-default);border-radius:8px;padding:5px 8px;background:transparent;cursor:pointer;line-height:1;display:flex;align-items:center;gap:1px;">
   <span style="font-size:14px;color:var(--accent-light);">←</span>
   <span style="font-size:14px;color:var(--bad-color);">→</span>
@@ -1053,22 +1053,20 @@ function addPullToClose(sheet, closeFn) {
     weekLabels.appendChild(lbl);
   });
 }
-    
+    var color = h.percent >= 70 ? 'var(--good-color,var(--accent-text))' : h.percent >= 50 ? 'var(--badge-week-text)' : 'var(--bad-color)';
     var overviewMode = 'good';
 function toggleOverview() {
   overviewMode = overviewMode === 'good' ? 'bad' : 'good';
   var titleEl = document.getElementById('overview-title');
   titleEl.textContent = overviewMode === 'good' ? 'Good habits overview' : 'Bad habits overview';
-  titleEl.style.color = overviewMode === 'good' ? 'var(--accent-text)' : 'var(--bad-color)';
+  titleEl.style.color = overviewMode === 'good' ? 'var(--good-color,var(--accent-text))' : 'var(--bad-color)';
   var listEl = document.getElementById('habits-overview-list');
   var stats = overviewMode === 'good'
     ? (appData.goodHabitStats || [])
     : (appData.badHabitStats || []);
   var sorted = stats.slice().sort(function(a,b){ return b.percent - a.percent; });
   listEl.innerHTML = sorted.map(function(h, i) {
-    var color = overviewMode === 'good'
-  ? (h.percent >= 70 ? 'var(--good-color,var(--accent-text))' : h.percent >= 50 ? 'var(--badge-week-text)' : 'var(--bad-color)')
-  : (h.percent >= 70 ? 'var(--good-color,var(--accent-text))' : h.percent >= 50 ? 'var(--badge-week-text)' : 'var(--bad-color)');
+    var color = h.percent >= 70 ? 'var(--good-color,var(--accent-text))' : h.percent >= 50 ? 'var(--badge-week-text)' : 'var(--bad-color)';
     var border = i < sorted.length - 1 ? 'border-bottom:1px solid var(--border-default);' : '';
     return '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;' + border + '">' +
       '<span style="font-size:13px;color:var(--text-secondary);">' + h.name + '</span>' +
