@@ -238,9 +238,10 @@
       <div class="card th-card-good border rounded-3xl p-6 mb-3">
   <div class="flex items-center justify-between mb-4">
     <div id="overview-title" class="text-[11px] uppercase tracking-widest" style="color:var(--text-primary)">Good habits overview</div>
-    <button onclick="toggleOverview()" style="border:1px solid var(--border-default);border-radius:8px;padding:5px 8px;background:transparent;cursor:pointer;line-height:1;">
-      <span style="font-size:16px;background:linear-gradient(90deg,var(--accent-light),var(--bad-color));-webkit-background-clip:text;-webkit-text-fill-color:transparent;">⇄</span>
-    </button>
+    <button onclick="toggleOverview()" style="border:1px solid var(--border-default);border-radius:8px;padding:5px 8px;background:transparent;cursor:pointer;line-height:1;display:flex;align-items:center;gap:1px;">
+  <span style="font-size:14px;color:var(--accent-light);">←</span>
+  <span style="font-size:14px;color:var(--bad-color);">→</span>
+</button>
   </div>
   <div id="habits-overview-list"></div>
   <div class="h-px mt-4 mb-4 th-divider"></div>
