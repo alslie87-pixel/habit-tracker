@@ -192,13 +192,32 @@ module.exports = async (req, res) => {
     }).length;
 
     let habitsOnTrack = 0;
-    activeGood.forEach(h => {
-      let count = 0;
-      prev2WeeksRows.forEach(r => {
-        if (monthData[r] && monthData[r][h.colIndex] === 'TRUE') count++;
-      });
-      if (totalDays2 > 0 && count / totalDays2 >= 0.7) habitsOnTrack++;
-    });
+activeGood.forEach(h => {
+  let count = 0;
+  prev2WeeksRows.forEach(r => {
+    if (monthData[r] && monthData[r][h.colIndex] === 'TRUE') count++;
+  });
+  if (totalDays2 > 0 && count / totalDays2 >= 0.7) habitsOnTrack++;
+});
+
+const olderWeeksRows = [];
+for (let i = Math.max(0, currentWeekIdx - 3); i < Math.max(0, currentWeekIdx - 1); i++)
+  for (let d = 0; d < 7; d++) olderWeeksRows.push(weekStartRows[i] + d);
+
+const totalOlderDays = olderWeeksRows.filter(r => {
+  if (!monthData[r] || !monthData[r][1]) return false;
+  const d = new Date(monthData[r][1]); d.setHours(0,0,0,0);
+  return d <= today;
+}).length;
+
+let prevHabitsOnTrack = 0;
+activeGood.forEach(h => {
+  let count = 0;
+  olderWeeksRows.forEach(r => {
+    if (monthData[r] && monthData[r][h.colIndex] === 'TRUE') count++;
+  });
+  if (totalOlderDays > 0 && count / totalOlderDays >= 0.7) prevHabitsOnTrack++;
+});
 
     const prev2Start = Math.max(0, currentWeekIdx - 1);
     const prev2Rows  = [];
@@ -344,6 +363,7 @@ module.exports = async (req, res) => {
       graveyard,
       weeklyTrend:  last4Weeks,
       habitsOnTrack,
+      prevHabitsOnTrack,
       totalHabits:  activeGood.length,
       mostImproved,
       nextToFall,
