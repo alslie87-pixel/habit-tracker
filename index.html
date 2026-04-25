@@ -67,7 +67,7 @@
       --accent-text:    #d06080;
       --bad-color:      #d06080;
       --bad-bg:         rgba(232,132,154,0.1);
-      --good-bg:        #e8849a;
+      --good-bg:        rgba(232,132,154,0.1);
       --good-color:        #5a8a60;
       --good-color-bg:     #eef6ee;
       --good-color-border: rgba(90,138,96,0.25);
@@ -77,8 +77,6 @@
       --text-secondary: #7a5060;
       --text-muted:     #c09090;
       --text-label:     #b08090;
-      --chip-unchecked-good-bg: #ffeae8;
-      --chip-unchecked-good-text: #c09090;
       --score-border:   #e8849a;
       --score-text:     #d06080;
       --badge-trend-bg: rgba(232,132,154,0.1);
@@ -103,7 +101,7 @@
     body { font-family: var(--font-body); background: var(--bg-page); color: var(--text-primary); transition: background 0.3s ease, color 0.3s ease; }
     .title-font { font-family: var(--font-title); }
     #theme-toggle { background: var(--toggle-bg); border: 1px solid var(--toggle-border); color: var(--toggle-text); border-radius: 100px; padding: 6px 14px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; letter-spacing: 0.04em; font-family: var(--font-body); }
-html:not(.light) #theme-toggle { background: #1a1630; border: 1px solid rgba(123,97,255,0.4); color: #a78bfa; }
+    html:not(.light) #theme-toggle { background: #1a1630; border: 1px solid rgba(123,97,255,0.4); color: #a78bfa; }
     #theme-toggle:hover { opacity: 0.8; }
     .card { transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
     .card:hover { transform: translateY(-2px); }
@@ -130,7 +128,6 @@ html:not(.light) #theme-toggle { background: #1a1630; border: 1px solid rgba(123
     .th-coaching-output { background: var(--bg-card); border-color: var(--border-accent); color: var(--text-secondary); }
     .th-footer-badge { background: var(--bg-card); color: var(--text-muted); }
     html.light .th-big-num { font-family: 'Playfair Display', serif; }
-    
     @keyframes bounce-dot { 0%,80%,100% { transform: translateY(0); opacity: 0.4; } 40% { transform: translateY(-6px); opacity: 1; } }
     @keyframes today-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
   </style>
@@ -145,7 +142,10 @@ html:not(.light) #theme-toggle { background: #1a1630; border: 1px solid rgba(123
         <p class="text-xs mt-6" style="color:var(--text-muted)">Make sure your Google Sheet is shared with the service account.</p>
       </div>
     </div>
+
     <div id="app" class="hidden">
+
+      <!-- HEADER -->
       <div class="flex flex-col items-center mb-8">
         <div class="flex items-center gap-x-3 w-full justify-between">
           <div class="flex items-center gap-x-3">
@@ -158,7 +158,11 @@ html:not(.light) #theme-toggle { background: #1a1630; border: 1px solid rgba(123
         </div>
         <p id="header-info" class="text-sm font-medium mt-1 self-start ml-8" style="color:var(--accent-text)"></p>
       </div>
+
+      <!-- DATE -->
       <div id="today-date" class="text-center text-sm mb-8 font-medium" style="color:var(--text-secondary)"></div>
+
+      <!-- STREAK + WEEKLY -->
       <div class="card th-card-accent border rounded-3xl p-8 mb-5 shadow-2xl">
         <div class="flex items-center justify-between gap-4">
           <div class="flex-1 text-center">
@@ -174,55 +178,66 @@ html:not(.light) #theme-toggle { background: #1a1630; border: 1px solid rgba(123
           </div>
         </div>
       </div>
+
+      <!-- DAILY QUOTE -->
       <div class="card th-card border rounded-3xl p-6 mb-5 text-center">
         <div class="text-[9px] uppercase tracking-widest mb-3" style="color:var(--text-muted)">Daily wisdom</div>
         <div id="daily-quote" class="text-sm italic leading-relaxed" style="color:var(--text-secondary)"></div>
         <div id="daily-quote-author" class="text-[11px] mt-2" style="color:var(--text-muted)"></div>
       </div>
-      <div id="focus-building" class="card th-card-good border rounded-3xl p-6 mb-3">
-  <div class="flex justify-between items-center mb-3">
-    <span onclick="openFocusModal('good')" class="inline-flex items-center gap-2 cursor-pointer">
-      <svg width="10" height="14" viewBox="0 0 10 14" fill="none" xmlns="http://www.w3.org/2000/svg" style="opacity:0.6;flex-shrink:0;color:var(--text-primary);">
-        <path d="M5 0L0 5H10L5 0Z" fill="currentColor"/>
-        <path d="M5 14L10 9H0L5 14Z" fill="currentColor"/>
-      </svg>
-      <span id="focus-good-name" class="text-lg font-semibold" style="color:var(--text-primary)">—</span>
-    </span>
-    <span id="focus-good-count" class="text-sm" style="color:var(--good-color,var(--accent-text))">0 / 30</span>
-  </div>
-  <div class="h-2 rounded-full overflow-hidden mb-3" style="background:var(--border-default)">
-    <div id="focus-good-bar" class="h-full rounded-full transition-all" style="width:0%;background:var(--good-color,var(--accent))"></div>
-  </div>
-  <div class="text-[11px]" style="color:var(--good-color,var(--accent-text))">Progress: building</div>
-  <div id="focus-good-msg" class="text-[11px] mt-0.5" style="color:var(--text-muted)">Keep showing up.</div>
-</div>
-      <div id="focus-eliminating" class="card th-card-bad border rounded-3xl p-6 mb-5">
-  <div class="flex justify-between items-center mb-3">
-    <span onclick="openFocusModal('bad')" class="inline-flex items-center gap-2 cursor-pointer">
-      <svg width="10" height="14" viewBox="0 0 10 14" fill="none" xmlns="http://www.w3.org/2000/svg" style="opacity:0.6;flex-shrink:0;color:var(--text-primary);">
-        <path d="M5 0L0 5H10L5 0Z" fill="currentColor"/>
-        <path d="M5 14L10 9H0L5 14Z" fill="currentColor"/>
-      </svg>
-      <span id="focus-bad-name" class="text-lg font-semibold" style="color:var(--text-primary)">—</span>
-    </span>
-    <span id="focus-bad-count" class="text-sm" style="color:var(--bad-color)">0 / 30</span>
-  </div>
-  <div class="h-2 rounded-full overflow-hidden mb-3" style="direction:rtl;background:var(--border-default)">
-    <div id="focus-bad-bar" class="h-full rounded-full transition-all" style="width:0%;background:var(--bad-color)"></div>
-  </div>
-  <div class="text-[11px]" style="color:var(--accent-text)">Progress: eliminating</div>
-  <div id="focus-bad-msg" class="text-[11px] mt-0.5" style="color:var(--text-muted)">Stay strong.</div>
-</div>
 
+      <!-- FOCUS: BUILDING -->
+      <div id="focus-building" class="card th-card-good border rounded-3xl p-6 mb-3">
+        <div class="flex justify-between items-center mb-3">
+          <span onclick="openFocusModal('good')" class="inline-flex items-center gap-2 cursor-pointer">
+            <svg width="10" height="14" viewBox="0 0 10 14" fill="none" xmlns="http://www.w3.org/2000/svg" style="opacity:0.6;flex-shrink:0;color:var(--text-primary);">
+              <path d="M5 0L0 5H10L5 0Z" fill="currentColor"/>
+              <path d="M5 14L10 9H0L5 14Z" fill="currentColor"/>
+            </svg>
+            <span id="focus-good-name" class="text-lg font-semibold" style="color:var(--text-primary)">—</span>
+          </span>
+          <span id="focus-good-count" class="text-sm" style="color:var(--good-color,var(--accent-text))">0 / 30</span>
+        </div>
+        <div class="h-2 rounded-full overflow-hidden mb-3" style="background:var(--border-default)">
+          <div id="focus-good-bar" class="h-full rounded-full transition-all" style="width:0%;background:var(--good-color,var(--accent))"></div>
+        </div>
+        <div class="text-[11px]" style="color:var(--good-color,var(--accent-text))">Progress: building</div>
+        <div id="focus-good-msg" class="text-[11px] mt-0.5" style="color:var(--text-muted)">Keep showing up.</div>
+      </div>
+
+      <!-- FOCUS: ELIMINATING -->
+      <div id="focus-eliminating" class="card th-card-bad border rounded-3xl p-6 mb-5">
+        <div class="flex justify-between items-center mb-3">
+          <span onclick="openFocusModal('bad')" class="inline-flex items-center gap-2 cursor-pointer">
+            <svg width="10" height="14" viewBox="0 0 10 14" fill="none" xmlns="http://www.w3.org/2000/svg" style="opacity:0.6;flex-shrink:0;color:var(--text-primary);">
+              <path d="M5 0L0 5H10L5 0Z" fill="currentColor"/>
+              <path d="M5 14L10 9H0L5 14Z" fill="currentColor"/>
+            </svg>
+            <span id="focus-bad-name" class="text-lg font-semibold" style="color:var(--text-primary)">—</span>
+          </span>
+          <span id="focus-bad-count" class="text-sm" style="color:var(--bad-color)">0 / 30</span>
+        </div>
+        <div class="h-2 rounded-full overflow-hidden mb-3" style="direction:rtl;background:var(--border-default)">
+          <div id="focus-bad-bar" class="h-full rounded-full transition-all" style="width:0%;background:var(--bad-color)"></div>
+        </div>
+        <div class="text-[11px]" style="color:var(--accent-text)">Progress: eliminating</div>
+        <div id="focus-bad-msg" class="text-[11px] mt-0.5" style="color:var(--text-muted)">Stay strong.</div>
+      </div>
+
+      <!-- THIS WEEK CALENDAR -->
       <div class="mb-5">
         <div class="flex items-center justify-between mb-4">
           <h2 class="title-font text-lg font-semibold tracking-tight" style="color:var(--text-primary)">This Week</h2>
-          <button onclick="openManageModal()" style="background:var(--bg-card);border:1px solid var(--border-default);color:var(--text-secondary);border-radius:100px;padding:4px 12px;font-size:13px;font-weight:600;cursor:pointer;"><span style="color:var(--good-color,var(--accent-light));margin-right:4px;">+</span><span style="color:var(--bad-color);">−</span>
+          <button onclick="openManageModal()" style="background:var(--bg-card);border:1px solid var(--border-default);color:var(--text-secondary);border-radius:100px;padding:4px 12px;font-size:13px;font-weight:600;cursor:pointer;">
+            <span style="color:var(--good-color,var(--accent-light));margin-right:4px;">+</span><span style="color:var(--bad-color);">−</span>
+          </button>
         </div>
         <div class="calendar-scroll overflow-x-auto md:overflow-visible pb-4">
           <div id="calendar-grid" class="flex gap-3 min-w-max md:min-w-0 md:grid md:grid-cols-7"></div>
         </div>
       </div>
+
+      <!-- PERFORMANCE -->
       <div class="text-[11px] uppercase tracking-[1.5px] font-medium mt-8 mb-3" style="color:var(--text-muted)">Performance</div>
       <div class="grid grid-cols-2 gap-3 mb-3">
         <div class="card th-card-bad border rounded-3xl p-5">
@@ -231,58 +246,42 @@ html:not(.light) #theme-toggle { background: #1a1630; border: 1px solid rgba(123
           <div id="worst-habit-pct" class="text-[11px] mt-1" style="color:var(--text-muted)">—</div>
         </div>
         <div class="card th-card-good border rounded-3xl p-5">
-  <div class="text-[9px] uppercase tracking-widest mb-2" style="color:var(--good-color,var(--accent-text))">Best progress</div>
-<div id="best-habit-name" class="text-base font-semibold" style="color:var(--good-color,var(--accent-text))">—</div>
-<div id="best-habit-pct" class="text-[11px] mt-1" style="color:var(--text-muted)">—</div>
-</div>
+          <div class="text-[9px] uppercase tracking-widest mb-2" style="color:var(--good-color,var(--accent-text))">Best progress</div>
+          <div id="best-habit-name" class="text-base font-semibold" style="color:var(--good-color,var(--accent-text))">—</div>
+          <div id="best-habit-pct" class="text-[11px] mt-1" style="color:var(--text-muted)">—</div>
+        </div>
       </div>
-      <div class="card th-card-good border rounded-3xl p-6 mb-3">
-  <div class="flex items-center justify-between mb-4">
-    <div id="overview-title" class="text-[11px] uppercase tracking-widest" style="color:var(--good-color,var(--accent-text))">Good habits overview</div>
-    <button onclick="toggleOverview()" style="border:1px solid var(--border-default);border-radius:100px;padding:4px 12px;background:var(--bg-card);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:1px;">
-  <svg width="14" height="8" viewBox="0 0 14 8" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M14 4L6 0V8L14 4Z" fill="var(--good-color,var(--accent-light))"/>
-    <line x1="0" y1="4" x2="11" y2="4" stroke="var(--good-color,var(--accent-light))" stroke-width="1.5"/>
-  </svg>
-  <svg width="14" height="8" viewBox="0 0 14 8" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M0 4L8 0V8L0 4Z" fill="var(--bad-color)"/>
-    <line x1="3" y1="4" x2="14" y2="4" stroke="var(--bad-color)" stroke-width="1.5"/>
-  </svg>
-</button>
-  </div>
-  <div id="habits-overview-list"></div>
-  <div class="h-px mt-4 mb-4 th-divider"></div>
-  <div class="text-[9px] uppercase tracking-widest mb-2" style="color:var(--text-muted)">4-week trend</div>
-  <div id="signal-sparkline" class="flex items-end gap-1 mb-1" style="height:56px;"></div>
-  <div id="signal-week-labels" class="flex gap-1 mb-0"></div>
-</div>
 
-<div class="card th-card-accent border rounded-3xl p-6 mb-3">
-  <div class="text-[11px] uppercase tracking-widest mb-4" style="color:var(--accent-text)">Signal</div>
-  <div class="h-px mb-4 th-divider"></div>
-  <div class="flex items-center gap-4 mb-3">
-    <div id="signal-score-circle" class="flex items-center justify-center rounded-full flex-shrink-0" style="width:48px;height:48px;border:2.5px solid var(--score-border);">
-      <span id="signal-score-num" class="text-sm font-semibold" style="color:var(--score-text)"></span>
-    </div>
-    <div id="signal-message" class="text-xs italic leading-relaxed" style="color:var(--text-secondary)"></div>
-  </div>
-  <div class="grid grid-cols-3 gap-1 mb-3">
-    <div id="badge-trend" class="text-[10px] py-1.5 px-2 rounded-full text-center flex items-center justify-center" style="background:var(--badge-trend-bg);color:var(--badge-trend-text)"></div>
-    <div id="badge-week" class="text-[10px] py-1.5 px-2 rounded-full text-center flex items-center justify-center" style="background:var(--badge-week-bg);color:var(--badge-week-text)"></div>
-    <div id="badge-improved" class="text-[10px] py-1.5 px-2 rounded-full text-center flex items-center justify-center" style="background:var(--badge-imp-bg);color:var(--badge-imp-text)"></div>
-  </div>
-  <div id="next-to-fall-section" class="hidden rounded-xl p-3" style="background:var(--ntf-bg);border:1px solid var(--ntf-border);">
-    <div class="flex justify-between items-baseline mb-1">
-      <div>
-        <div class="text-[9px] uppercase tracking-widest" style="color:var(--text-muted)">Next to fall</div>
-        <div id="ntf-name" class="text-sm font-medium" style="color:var(--bad-color)"></div>
+      <!-- HABITS OVERVIEW + SPARKLINE -->
+      <div class="card th-card-good border rounded-3xl p-6 mb-3">
+        <div class="flex items-center justify-between mb-4">
+          <div id="overview-title" class="text-[11px] uppercase tracking-widest" style="color:var(--good-color,var(--accent-text))">Good habits overview</div>
+          <button onclick="toggleOverview()" style="border:1px solid var(--border-default);border-radius:100px;padding:4px 12px;background:var(--bg-card);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:1px;">
+            <svg width="14" height="8" viewBox="0 0 14 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M14 4L6 0V8L14 4Z" fill="var(--good-color,var(--accent-light))"/>
+              <line x1="0" y1="4" x2="11" y2="4" stroke="var(--good-color,var(--accent-light))" stroke-width="1.5"/>
+            </svg>
+            <svg width="14" height="8" viewBox="0 0 14 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M0 4L8 0V8L0 4Z" fill="var(--bad-color)"/>
+              <line x1="3" y1="4" x2="14" y2="4" stroke="var(--bad-color)" stroke-width="1.5"/>
+            </svg>
+          </button>
+        </div>
+        <div id="habits-overview-list"></div>
+        <div class="h-px mt-4 mb-4 th-divider"></div>
+        <div class="text-[9px] uppercase tracking-widest mb-2" style="color:var(--text-muted)">4-week trend</div>
+        <div id="signal-sparkline" class="flex items-end gap-1 mb-1" style="height:56px;"></div>
+        <div id="signal-week-labels" class="flex gap-1 mb-0"></div>
       </div>
-      <div id="ntf-count" class="text-xs" style="color:var(--bad-color)"></div>
-    </div>
-    <div id="ntf-motivation" class="text-[10px] italic mb-2" style="color:var(--text-muted)"></div>
-    <div id="ntf-boxes" class="grid gap-1" style="grid-template-columns:repeat(10,1fr);"></div>
-  </div>
-</div>
+
+      <!-- SIGNAL CARD -->
+      <div class="card th-card-accent border rounded-3xl p-6 mb-3">
+        <div class="text-[11px] uppercase tracking-widest mb-4" style="color:var(--accent-text)">Signal</div>
+        <div class="h-px mb-4 th-divider"></div>
+        <div class="flex items-center gap-4 mb-3">
+          <div id="signal-score-circle" class="flex items-center justify-center rounded-full flex-shrink-0" style="width:48px;height:48px;border:2.5px solid var(--score-border);">
+            <span id="signal-score-num" class="text-sm font-semibold" style="color:var(--score-text)"></span>
+          </div>
           <div id="signal-message" class="text-xs italic leading-relaxed" style="color:var(--text-secondary)"></div>
         </div>
         <div class="grid grid-cols-3 gap-1 mb-3">
@@ -302,6 +301,8 @@ html:not(.light) #theme-toggle { background: #1a1630; border: 1px solid rgba(123
           <div id="ntf-boxes" class="grid gap-1" style="grid-template-columns:repeat(10,1fr);"></div>
         </div>
       </div>
+
+      <!-- CONQUERED -->
       <div id="graveyard-section" class="hidden mb-5">
         <div class="card th-conquered-card border rounded-3xl p-6 text-center">
           <div class="text-sm font-semibold tracking-wide mb-1" style="color:var(--text-secondary)">Conquered</div>
@@ -309,12 +310,16 @@ html:not(.light) #theme-toggle { background: #1a1630; border: 1px solid rgba(123
           <div id="graveyard-list" class="flex flex-wrap gap-2 justify-center"></div>
         </div>
       </div>
+
+      <!-- AI COACHING -->
       <div class="mt-6">
         <button id="coaching-btn" onclick="requestCoaching()" class="w-full font-semibold py-4 px-6 rounded-3xl transition-colors text-sm tracking-wide title-font" style="background:var(--btn-bg);color:var(--btn-text);border:none;">
           Get AI Coaching
         </button>
         <div id="coaching-output" class="hidden mt-4 th-coaching-output border rounded-3xl p-6 text-sm leading-relaxed"></div>
       </div>
+
+      <!-- FOOTER -->
       <div class="mt-10 text-center">
         <div class="inline-flex items-center gap-x-1.5 text-[10px] th-footer-badge px-4 h-8 rounded-2xl">
           <span class="relative flex h-2 w-2">
@@ -324,10 +329,11 @@ html:not(.light) #theme-toggle { background: #1a1630; border: 1px solid rgba(123
           LIVE from Google Sheets
         </div>
       </div>
+
     </div>
   </div>
 
-  <!-- Manage Habits Modal -->
+  <!-- MANAGE HABITS MODAL -->
   <div id="manage-modal" class="hidden" style="position:fixed;inset:0;z-index:200;display:none;align-items:flex-end;justify-content:center;">
     <div onclick="closeManageModal()" style="position:absolute;inset:0;background:rgba(0,0,0,0.6);touch-action:none;"></div>
     <div id="manage-modal-sheet" class="th-modal-bg" style="position:relative;width:100%;max-width:480px;border-top-left-radius:24px;border-top-right-radius:24px;padding:24px 20px 40px;transform:translateY(100%);transition:transform 0.3s ease;max-height:80vh;overflow-y:auto;">
@@ -338,7 +344,7 @@ html:not(.light) #theme-toggle { background: #1a1630; border: 1px solid rgba(123
     </div>
   </div>
 
-  <!-- Confirm Action Modal -->
+  <!-- CONFIRM ACTION MODAL -->
   <div id="confirm-modal" class="hidden" style="position:fixed;inset:0;z-index:300;display:none;align-items:flex-end;justify-content:center;">
     <div onclick="closeConfirmModal()" style="position:absolute;inset:0;background:rgba(0,0,0,0.6);touch-action:none;"></div>
     <div id="confirm-modal-sheet" class="th-modal-bg" style="position:relative;width:100%;max-width:480px;border-top-left-radius:24px;border-top-right-radius:24px;padding:24px 20px 40px;transform:translateY(100%);transition:transform 0.3s ease;">
@@ -354,7 +360,7 @@ html:not(.light) #theme-toggle { background: #1a1630; border: 1px solid rgba(123
     </div>
   </div>
 
-  <!-- Focus Habit Selector Modal -->
+  <!-- FOCUS HABIT SELECTOR MODAL -->
   <div id="focus-modal" class="hidden" style="position:fixed;inset:0;z-index:200;display:none;align-items:flex-end;justify-content:center;">
     <div onclick="closeFocusModal()" style="position:absolute;inset:0;background:rgba(0,0,0,0.6);touch-action:none;"></div>
     <div id="focus-modal-sheet" class="th-modal-bg" style="position:relative;width:100%;max-width:480px;border-top-left-radius:24px;border-top-right-radius:24px;padding:24px 20px 40px;transform:translateY(100%);transition:transform 0.3s ease;">
@@ -365,29 +371,29 @@ html:not(.light) #theme-toggle { background: #1a1630; border: 1px solid rgba(123
   </div>
 
   <script>
-    // ── THEME ──────────────────────────────────────────────
+    // ── THEME ─────────────────────────────────────────────
     const savedTheme = localStorage.getItem('hbt-theme') || 'dark';
-      if (savedTheme === 'light') document.documentElement.classList.add('light');
-      if (savedTheme === 'dark') document.documentElement.classList.remove('light');
+    if (savedTheme === 'light') document.documentElement.classList.add('light');
+    if (savedTheme === 'dark') document.documentElement.classList.remove('light');
 
     function applyTheme(theme) {
       const btn = document.getElementById('theme-toggle');
-        if (theme === 'light') {
-         document.documentElement.classList.add('light');
+      if (theme === 'light') {
+        document.documentElement.classList.add('light');
         if (btn) btn.textContent = '☾ Dark';
       } else {
         document.documentElement.classList.remove('light');
         if (btn) btn.textContent = '☀ Light';
+      }
+      localStorage.setItem('hbt-theme', theme);
     }
-  localStorage.setItem('hbt-theme', theme);
-}
 
     function toggleTheme() {
-  const isLight = document.documentElement.classList.contains('light');
-  applyTheme(isLight ? 'dark' : 'light');
-  rebuildSparkline();
-  if (appData) renderCalendar(appData);
-}
+      const isLight = document.documentElement.classList.contains('light');
+      applyTheme(isLight ? 'dark' : 'light');
+      rebuildSparkline();
+      if (appData) renderCalendar(appData);
+    }
 
     // ── QUOTES ────────────────────────────────────────────
     let appData = null;
@@ -436,11 +442,11 @@ html:not(.light) #theme-toggle { background: #1a1630; border: 1px solid rgba(123
     // ── PULL TO REFRESH ───────────────────────────────────
     let startY = 0, pulling = false;
     document.addEventListener('touchstart', e => {
-  const modalOpen = document.getElementById('manage-modal').style.display === 'flex' ||
-                    document.getElementById('confirm-modal').style.display === 'flex' ||
-                    document.getElementById('focus-modal').style.display === 'flex';
-  if (window.scrollY === 0 && !modalOpen) { startY = e.touches[0].clientY; pulling = true; }
-}, { passive: true });
+      const modalOpen = document.getElementById('manage-modal').style.display === 'flex' ||
+                        document.getElementById('confirm-modal').style.display === 'flex' ||
+                        document.getElementById('focus-modal').style.display === 'flex';
+      if (window.scrollY === 0 && !modalOpen) { startY = e.touches[0].clientY; pulling = true; }
+    }, { passive: true });
     document.addEventListener('touchmove', e => {
       if (!pulling) return;
       if (e.touches[0].clientY - startY > 80) document.body.style.opacity = '1';
@@ -492,26 +498,7 @@ html:not(.light) #theme-toggle { background: #1a1630; border: 1px solid rgba(123
         document.getElementById('signal-message').textContent = '"' + data.signal + '"';
 
         // Sparkline
-        const sparkline = document.getElementById('signal-sparkline');
-        const weekLabels = document.getElementById('signal-week-labels');
-        sparkline.innerHTML = '';
-        weekLabels.innerHTML = '';
-        const trend = data.weeklyTrend || [];
-        const maxPct = Math.max(...trend, 1);
-        trend.forEach((pct, i) => {
-          const isRecent = i >= trend.length - 2;
-          const isLight = document.documentElement.classList.contains('light');
-          const recentColor = isLight ? '#d06080' : '#7b61ff';
-          const oldColor    = isLight ? '#f0d0d8' : '#2a2a38';
-          const mutedColor  = isLight ? '#c09090' : '#555568';
-          const bar = document.createElement('div');
-          bar.style.cssText = 'flex:1;border-radius:3px;height:' + Math.max(10, Math.round((pct / maxPct) * 100)) + '%;background:' + (isRecent ? recentColor : oldColor) + ';min-height:4px;';
-          sparkline.appendChild(bar);
-          const lbl = document.createElement('div');
-          lbl.style.cssText = 'flex:1;font-size:9px;color:' + mutedColor + ';text-align:center;font-family:sans-serif;';
-          lbl.textContent = 'W' + (i + 1);
-          weekLabels.appendChild(lbl);
-        });
+        rebuildSparkline();
 
         // Score
         const score = data.habitsOnTrack || 0;
@@ -573,18 +560,8 @@ html:not(.light) #theme-toggle { background: #1a1630; border: 1px solid rgba(123
           document.getElementById('best-habit-pct').textContent = data.best.percent + '% this month';
         }
 
-        // Good habits overview
-        var listEl = document.getElementById('habits-overview-list');
-        if (data.goodHabitStats && data.goodHabitStats.length > 0) {
-          var sortedStats = data.goodHabitStats.slice().sort(function(a,b){ return b.percent - a.percent; });
-          listEl.innerHTML = sortedStats.map(function(h, i) {
-            var color = h.percent >= 70 ? 'var(--good-color,var(--accent-text))' : h.percent >= 50 ? 'var(--badge-week-text)' : 'var(--bad-color)';
-            var border = i < sortedStats.length - 1 ? 'border-bottom:1px solid var(--border-default);' : '';
-            return '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;' + border + '">' +
-              '<span style="font-size:13px;color:var(--text-secondary);">' + h.name + '</span>' +
-              '<span style="font-size:13px;font-weight:500;color:' + color + ';">' + h.percent + '%</span></div>';
-          }).join('');
-        }
+        // Good habits overview (default view)
+        renderOverviewList(data.goodHabitStats || [], 'good');
 
         // Conquered
         if (data.graveyard && data.graveyard.length > 0) {
@@ -607,6 +584,66 @@ html:not(.light) #theme-toggle { background: #1a1630; border: 1px solid rgba(123
         document.getElementById('error-state').classList.remove('hidden');
         document.getElementById('error-message').textContent = err.message;
       }
+    }
+
+    // ── OVERVIEW TOGGLE ───────────────────────────────────
+    var overviewMode = 'good';
+
+    function renderOverviewList(stats, mode) {
+      var listEl = document.getElementById('habits-overview-list');
+      var sorted = (stats || []).slice().sort(function(a, b) { return b.percent - a.percent; });
+      listEl.innerHTML = sorted.map(function(h, i) {
+        var color = h.percent >= 70
+          ? 'var(--good-color,var(--accent-text))'
+          : h.percent >= 50
+            ? 'var(--badge-week-text)'
+            : 'var(--bad-color)';
+        var border = i < sorted.length - 1 ? 'border-bottom:1px solid var(--border-default);' : '';
+        return '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;' + border + '">' +
+          '<span style="font-size:13px;color:var(--text-secondary);">' + h.name + '</span>' +
+          '<span style="font-size:13px;font-weight:500;color:' + color + ';">' + h.percent + '%</span></div>';
+      }).join('');
+    }
+
+    function toggleOverview() {
+      overviewMode = overviewMode === 'good' ? 'bad' : 'good';
+      var titleEl = document.getElementById('overview-title');
+      var isLight = document.documentElement.classList.contains('light');
+      if (overviewMode === 'good') {
+        titleEl.textContent = 'Good habits overview';
+        titleEl.style.color = isLight ? 'var(--good-color)' : 'var(--accent-text)';
+        renderOverviewList(appData.goodHabitStats || [], 'good');
+      } else {
+        titleEl.textContent = 'Bad habits overview';
+        titleEl.style.color = 'var(--bad-color)';
+        renderOverviewList(appData.badHabitStats || [], 'bad');
+      }
+    }
+
+    // ── SPARKLINE ─────────────────────────────────────────
+    function rebuildSparkline() {
+      if (!appData || !appData.weeklyTrend) return;
+      const sparkline = document.getElementById('signal-sparkline');
+      const weekLabels = document.getElementById('signal-week-labels');
+      if (!sparkline || !weekLabels) return;
+      sparkline.innerHTML = '';
+      weekLabels.innerHTML = '';
+      const trend = appData.weeklyTrend;
+      const maxPct = Math.max(...trend, 1);
+      const isLight = document.documentElement.classList.contains('light');
+      const recentColor = isLight ? '#d06080' : '#7b61ff';
+      const oldColor    = isLight ? '#f0d0d8' : '#2a2a38';
+      const mutedColor  = isLight ? '#c09090' : '#555568';
+      trend.forEach((pct, i) => {
+        const isRecent = i >= trend.length - 2;
+        const bar = document.createElement('div');
+        bar.style.cssText = 'flex:1;border-radius:3px;height:' + Math.max(10, Math.round((pct / maxPct) * 100)) + '%;background:' + (isRecent ? recentColor : oldColor) + ';min-height:4px;';
+        sparkline.appendChild(bar);
+        const lbl = document.createElement('div');
+        lbl.style.cssText = 'flex:1;font-size:9px;color:' + mutedColor + ';text-align:center;font-family:sans-serif;';
+        lbl.textContent = 'W' + (i + 1);
+        weekLabels.appendChild(lbl);
+      });
     }
 
     // ── CALENDAR ──────────────────────────────────────────
@@ -681,18 +718,18 @@ html:not(.light) #theme-toggle { background: #1a1630; border: 1px solid rgba(123
       });
 
       var todayCard = grid.querySelector('.today');
-if (todayCard) {
-  setTimeout(function() {
-    var container = todayCard.parentElement.parentElement;
-    var cardLeft = todayCard.offsetLeft;
-    var cardWidth = todayCard.offsetWidth;
-    var containerWidth = container.offsetWidth;
-    container.scrollTo({
-      left: cardLeft - (containerWidth / 2) + (cardWidth / 2),
-      behavior: 'smooth'
-    });
-  }, 300);
-}
+      if (todayCard) {
+        setTimeout(function() {
+          var container = todayCard.parentElement.parentElement;
+          var cardLeft = todayCard.offsetLeft;
+          var cardWidth = todayCard.offsetWidth;
+          var containerWidth = container.offsetWidth;
+          container.scrollTo({
+            left: cardLeft - (containerWidth / 2) + (cardWidth / 2),
+            behavior: 'smooth'
+          });
+        }, 300);
+      }
     }
 
     // ── HABIT TAP ─────────────────────────────────────────
@@ -741,53 +778,36 @@ if (todayCard) {
       var sheet = document.getElementById('focus-modal-sheet');
       var title = document.getElementById('focus-modal-title');
       var options = document.getElementById('focus-modal-options');
-
       var habits = type === 'good'
-  ? (appData.week[0] ? appData.week[0].good.map(h => h.name) : [])
-  : (appData.week[0] ? appData.week[0].bad.map(h => h.name)  : []);
-
-title.textContent = type === 'good'
-  ? 'Choose habit to build'
-  : 'Choose habit to eliminate';
-
-var nameEl = document.getElementById(type === 'good' ? 'focus-good-name' : 'focus-bad-name');
-var currentName = nameEl ? nameEl.querySelector('span:last-child') 
-  ? nameEl.querySelector('span:last-child').textContent.trim()
-  : nameEl.textContent.replace(/[▴▾]/g, '').trim()
-  : '';
-
-options.innerHTML = habits.map(function(h) {
-  var isActive = h === currentName;
-  var isGood      = type === 'good';
-var isLight     = document.documentElement.classList.contains('light');
-var activeBorder = isGood
-  ? (isLight ? 'rgba(90,138,96,0.4)'   : 'var(--border-accent)')
-  : 'var(--border-bad)';
-var activeBg     = isGood
-  ? (isLight ? '#eef6ee'               : 'var(--good-bg)')
-  : 'var(--bad-bg)';
-var activeText   = isGood
-  ? (isLight ? '#5a8a60'               : 'var(--accent-text)')
-  : 'var(--bad-color)';
-var borderColor  = isActive ? activeBorder : 'var(--border-default)';
-var bgColor      = isActive ? activeBg     : 'var(--bg-card-inner)';
-var textColor    = isActive ? activeText   : 'var(--text-secondary)';
-  var arrows       = '<span style="display:inline-flex;flex-direction:column;align-items:center;gap:1px;line-height:1;opacity:0.4;"><span style="font-size:8px;line-height:1;">▴</span><span style="font-size:8px;line-height:1;">▾</span></span>';
-  return '<button onclick="selectFocusHabit(\'' + h + '\')" '
-    + 'class="w-full text-left px-4 py-3 rounded-2xl mb-2 text-sm font-medium transition-colors '
-    + (isActive ? 'th-modal-option-active' : 'th-modal-option-inactive') + '" '
-    + 'style="border:1px solid ' + borderColor + ';background:' + bgColor + ';color:' + textColor + ';display:flex;align-items:center;justify-content:space-between;">'
-    + '<span>' + (isActive ? '\u25CF ' : '') + h + '</span>'
-    + arrows
-    + '</button>';
-}).join('');
-
-          modal.classList.remove('hidden');
-          modal.style.display = 'flex';
-          document.body.style.position = 'fixed';
-          document.body.style.width = '100%';
-          setTimeout(function() { sheet.style.transform = 'translateY(0)'; }, 10);
-        }
+        ? (appData.week[0] ? appData.week[0].good.map(h => h.name) : [])
+        : (appData.week[0] ? appData.week[0].bad.map(h => h.name) : []);
+      title.textContent = type === 'good' ? 'Choose habit to build' : 'Choose habit to eliminate';
+      var nameEl = document.getElementById(type === 'good' ? 'focus-good-name' : 'focus-bad-name');
+      var currentName = nameEl ? nameEl.textContent.replace(/[▴▾]/g, '').trim() : '';
+      options.innerHTML = habits.map(function(h) {
+        var isActive = h === currentName;
+        var isGood = type === 'good';
+        var isLight = document.documentElement.classList.contains('light');
+        var activeBorder = isGood ? (isLight ? 'rgba(90,138,96,0.4)' : 'var(--border-accent)') : 'var(--border-bad)';
+        var activeBg     = isGood ? (isLight ? '#eef6ee' : 'var(--good-bg)') : 'var(--bad-bg)';
+        var activeText   = isGood ? (isLight ? '#5a8a60' : 'var(--accent-text)') : 'var(--bad-color)';
+        var borderColor  = isActive ? activeBorder : 'var(--border-default)';
+        var bgColor      = isActive ? activeBg : 'var(--bg-card-inner)';
+        var textColor    = isActive ? activeText : 'var(--text-secondary)';
+        var arrows = '<span style="display:inline-flex;flex-direction:column;align-items:center;gap:1px;line-height:1;opacity:0.4;"><span style="font-size:8px;line-height:1;">▴</span><span style="font-size:8px;line-height:1;">▾</span></span>';
+        return '<button onclick="selectFocusHabit(\'' + h + '\')" '
+          + 'class="w-full text-left px-4 py-3 rounded-2xl mb-2 text-sm font-medium transition-colors '
+          + (isActive ? 'th-modal-option-active' : 'th-modal-option-inactive') + '" '
+          + 'style="border:1px solid ' + borderColor + ';background:' + bgColor + ';color:' + textColor + ';display:flex;align-items:center;justify-content:space-between;">'
+          + '<span>' + (isActive ? '\u25CF ' : '') + h + '</span>'
+          + arrows + '</button>';
+      }).join('');
+      modal.classList.remove('hidden');
+      modal.style.display = 'flex';
+      document.body.style.position = 'fixed';
+      document.body.style.width = '100%';
+      setTimeout(function() { sheet.style.transform = 'translateY(0)'; }, 10);
+    }
 
     function closeFocusModal() {
       var sheet = document.getElementById('focus-modal-sheet');
@@ -855,15 +875,15 @@ var textColor    = isActive ? activeText   : 'var(--text-secondary)';
       if (!appData) return;
       var modal = document.getElementById('manage-modal');
       var sheet = document.getElementById('manage-modal-sheet');
-  renderManageSection('bad');
-  renderManageSection('good');
-  modal.classList.remove('hidden');
-  modal.style.display = 'flex';
-  document.body.style.position = 'fixed';
-  document.body.style.width = '100%';
-  setTimeout(function() { sheet.style.transform = 'translateY(0)'; }, 10);
-  addPullToClose(sheet, closeManageModal);
-}
+      renderManageSection('bad');
+      renderManageSection('good');
+      modal.classList.remove('hidden');
+      modal.style.display = 'flex';
+      document.body.style.position = 'fixed';
+      document.body.style.width = '100%';
+      setTimeout(function() { sheet.style.transform = 'translateY(0)'; }, 10);
+      addPullToClose(sheet, closeManageModal);
+    }
 
     function closeManageModal() {
       var sheet = document.getElementById('manage-modal-sheet');
@@ -888,13 +908,13 @@ var textColor    = isActive ? activeText   : 'var(--text-secondary)';
       var addStyle = addDisabled ? 'opacity:0.4;cursor:not-allowed;' : 'cursor:pointer;';
       var isBad = type === 'bad';
       var headerColor = isBad ? 'var(--bad-color)' : 'var(--good-color,var(--accent-text))';
-var addBg = isBad ? 'var(--bad-bg)' : 'var(--good-bg)';
-var addColor = isBad ? 'var(--bad-color)' : 'var(--good-color,var(--accent-text))';
-var addBorder = isBad ? 'var(--border-bad)' : 'var(--border-good)';
-var html = '<div class="flex items-center justify-between mb-3">' +
-  '<span style="font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:' + headerColor + '">' + label + ' (' + count + '/' + max + ')</span>' +
-  '<button onclick="openAddHabit(\'' + type + '\')" style="font-size:12px;font-weight:700;padding:4px 12px;border-radius:100px;background:' + addBg + ';color:' + addColor + ';border:1px solid ' + addBorder + ';' + addStyle + '"' + (addDisabled ? ' disabled' : '') + '>+ Add</button>' +
-  '</div>';
+      var addBg     = isBad ? 'var(--bad-bg)'             : 'var(--good-color-bg,var(--good-bg))';
+      var addColor  = isBad ? 'var(--bad-color)'           : 'var(--good-color,var(--accent-text))';
+      var addBorder = isBad ? 'var(--border-bad)'          : 'var(--good-color-border,var(--border-good))';
+      var html = '<div class="flex items-center justify-between mb-3">' +
+        '<span style="font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:' + headerColor + '">' + label + ' (' + count + '/' + max + ')</span>' +
+        '<button onclick="openAddHabit(\'' + type + '\')" style="font-size:12px;font-weight:700;padding:4px 12px;border-radius:100px;background:' + addBg + ';color:' + addColor + ';border:1px solid ' + addBorder + ';' + addStyle + '"' + (addDisabled ? ' disabled' : '') + '>+ Add</button>' +
+        '</div>';
       habits.forEach(function(h) {
         html += '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border-default);">' +
           '<span style="font-size:14px;color:var(--text-primary)">' + h.name + '</span>' +
@@ -940,12 +960,12 @@ var html = '<div class="flex items-center justify-between mb-3">' +
       modal.classList.remove('hidden');
       modal.style.display = 'flex';
       document.body.style.position = 'fixed';
-  document.body.style.width = '100%';
-  setTimeout(function() { sheet.style.transform = 'translateY(0)'; }, 10);
-  addPullToClose(sheet, closeConfirmModal);
-}
+      document.body.style.width = '100%';
+      setTimeout(function() { sheet.style.transform = 'translateY(0)'; }, 10);
+      addPullToClose(sheet, closeConfirmModal);
+    }
 
-function closeConfirmModal() {
+    function closeConfirmModal() {
       var sheet = document.getElementById('confirm-modal-sheet');
       sheet.style.transform = 'translateY(100%)';
       setTimeout(function() {
@@ -999,95 +1019,40 @@ function closeConfirmModal() {
         btn.disabled = false;
       }
     }
-// ── PULL TO CLOSE MODALS ──────────────────────────────
-function addPullToClose(sheet, closeFn) {
-  var startY = 0;
-  var isDragging = false;
-  var canPull = false;
 
-  function onTouchStart(e) {
-    startY = e.touches[0].clientY;
-    isDragging = true;
-    canPull = sheet.scrollTop === 0;
-    sheet.style.transition = 'none';
-  }
-
-  function onTouchMove(e) {
-    if (!isDragging) return;
-    var diff = e.touches[0].clientY - startY;
-    if (canPull && diff > 0) {
-      sheet.style.transform = 'translateY(' + diff + 'px)';
-    } else if (diff < 0) {
-      canPull = false;
+    // ── PULL TO CLOSE MODALS ──────────────────────────────
+    function addPullToClose(sheet, closeFn) {
+      var startY = 0, isDragging = false, canPull = false;
+      function onTouchStart(e) {
+        startY = e.touches[0].clientY;
+        isDragging = true;
+        canPull = sheet.scrollTop === 0;
+        sheet.style.transition = 'none';
+      }
+      function onTouchMove(e) {
+        if (!isDragging) return;
+        var diff = e.touches[0].clientY - startY;
+        if (canPull && diff > 0) { sheet.style.transform = 'translateY(' + diff + 'px)'; }
+        else if (diff < 0) { canPull = false; }
+      }
+      function onTouchEnd(e) {
+        if (!isDragging) return;
+        isDragging = false;
+        sheet.style.transition = 'transform 0.3s ease';
+        var diff = e.changedTouches[0].clientY - startY;
+        if (canPull && diff > 80) { closeFn(); }
+        else { sheet.style.transform = 'translateY(0)'; }
+        sheet.removeEventListener('touchstart', onTouchStart);
+        sheet.removeEventListener('touchmove', onTouchMove);
+        sheet.removeEventListener('touchend', onTouchEnd);
+      }
+      sheet.addEventListener('touchstart', onTouchStart, { passive: true });
+      sheet.addEventListener('touchmove', onTouchMove, { passive: true });
+      sheet.addEventListener('touchend', onTouchEnd, { passive: true });
     }
-  }
 
-  function onTouchEnd(e) {
-    if (!isDragging) return;
-    isDragging = false;
-    sheet.style.transition = 'transform 0.3s ease';
-    var diff = e.changedTouches[0].clientY - startY;
-    if (canPull && diff > 80) {
-      closeFn();
-    } else {
-      sheet.style.transform = 'translateY(0)';
-    }
-    sheet.removeEventListener('touchstart', onTouchStart);
-    sheet.removeEventListener('touchmove', onTouchMove);
-    sheet.removeEventListener('touchend', onTouchEnd);
-  }
-
-  sheet.addEventListener('touchstart', onTouchStart, { passive: true });
-  sheet.addEventListener('touchmove', onTouchMove, { passive: true });
-  sheet.addEventListener('touchend', onTouchEnd, { passive: true });
-}
-    function rebuildSparkline() {
-  if (!appData || !appData.weeklyTrend) return;
-  const sparkline = document.getElementById('signal-sparkline');
-  const weekLabels = document.getElementById('signal-week-labels');
-  if (!sparkline || !weekLabels) return;
-  sparkline.innerHTML = '';
-  weekLabels.innerHTML = '';
-  const trend = appData.weeklyTrend;
-  const maxPct = Math.max(...trend, 1);
-  const isLight = document.documentElement.classList.contains('light');
-  const recentColor = isLight ? '#d06080' : '#7b61ff';
-  const oldColor    = isLight ? '#f0d0d8' : '#2a2a38';
-  const mutedColor  = isLight ? '#c09090' : '#555568';
-  trend.forEach((pct, i) => {
-    const isRecent = i >= trend.length - 2;
-    const bar = document.createElement('div');
-    bar.style.cssText = 'flex:1;border-radius:3px;height:' + Math.max(10, Math.round((pct / maxPct) * 100)) + '%;background:' + (isRecent ? recentColor : oldColor) + ';min-height:4px;';
-    sparkline.appendChild(bar);
-    const lbl = document.createElement('div');
-    lbl.style.cssText = 'flex:1;font-size:9px;color:' + mutedColor + ';text-align:center;font-family:sans-serif;';
-    lbl.textContent = 'W' + (i + 1);
-    weekLabels.appendChild(lbl);
-  });
-}
-    var color = h.percent >= 70 ? 'var(--good-color,var(--accent-text))' : h.percent >= 50 ? 'var(--badge-week-text)' : 'var(--bad-color)';
-    var overviewMode = 'good';
-function toggleOverview() {
-  overviewMode = overviewMode === 'good' ? 'bad' : 'good';
-  var titleEl = document.getElementById('overview-title');
-titleEl.textContent = overviewMode === 'good' ? 'Good habits overview' : 'Bad habits overview';
-titleEl.style.color = overviewMode === 'good' ? 'var(--accent-light)' : 'var(--bad-color)';
-  var listEl = document.getElementById('habits-overview-list');
-  var stats = overviewMode === 'good'
-    ? (appData.goodHabitStats || [])
-    : (appData.badHabitStats || []);
-  var sorted = stats.slice().sort(function(a,b){ return b.percent - a.percent; });
-  listEl.innerHTML = sorted.map(function(h, i) {
-    var color = h.percent >= 70 ? 'var(--good-color,var(--accent-text))' : h.percent >= 50 ? 'var(--badge-week-text)' : 'var(--bad-color)';
-    var border = i < sorted.length - 1 ? 'border-bottom:1px solid var(--border-default);' : '';
-    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;' + border + '">' +
-      '<span style="font-size:13px;color:var(--text-secondary);">' + h.name + '</span>' +
-      '<span style="font-size:13px;font-weight:500;color:' + color + ';">' + h.percent + '%</span></div>';
-  }).join('');
-}
-
-// Auto-refresh every 5 minutes
-setTimeout(function() { window.location.reload(); }, 600000);
+    // ── AUTO REFRESH ──────────────────────────────────────
+    setTimeout(function() { window.location.reload(); }, 600000);
   </script>
 </body>
 </html>
