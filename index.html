@@ -237,9 +237,9 @@
       </div>
       <div class="card th-card-good border rounded-3xl p-6 mb-3">
   <div class="flex items-center justify-between mb-4">
-    <div id="overview-title" class="text-[11px] uppercase tracking-widest" style="color:var(--text-muted)">Good habits overview</div>
+    <div id="overview-title" class="text-[11px] uppercase tracking-widest" style="color:var(--text-primary)">Good habits overview</div>
     <button onclick="toggleOverview()" style="border:1px solid var(--border-default);border-radius:8px;padding:5px 8px;background:transparent;cursor:pointer;line-height:1;">
-      <span style="font-size:14px;background:linear-gradient(90deg,var(--bad-color),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;">⇄</span>
+      <span style="font-size:16px;background:linear-gradient(90deg,var(--accent-light),var(--bad-color));-webkit-background-clip:text;-webkit-text-fill-color:transparent;">⇄</span>
     </button>
   </div>
   <div id="habits-overview-list"></div>
@@ -250,7 +250,7 @@
 </div>
 
 <div class="card th-card-accent border rounded-3xl p-6 mb-3">
-  <div class="text-[11px] uppercase tracking-widest mb-4" style="color:var(--text-muted)">Signal</div>
+  <div class="text-[11px] uppercase tracking-widest mb-4" style="color:var(--text-primary)">Signal</div>
   <div class="h-px mb-4 th-divider"></div>
   <div class="flex items-center gap-4 mb-3">
     <div id="signal-score-circle" class="flex items-center justify-center rounded-full flex-shrink-0" style="width:48px;height:48px;border:2.5px solid var(--score-border);">
@@ -1056,8 +1056,9 @@ function addPullToClose(sheet, closeFn) {
     var overviewMode = 'good';
 function toggleOverview() {
   overviewMode = overviewMode === 'good' ? 'bad' : 'good';
-  document.getElementById('overview-title').textContent =
-    overviewMode === 'good' ? 'Good habits overview' : 'Bad habits overview';
+  var titleEl = document.getElementById('overview-title');
+  titleEl.textContent = overviewMode === 'good' ? 'Good habits overview' : 'Bad habits overview';
+  titleEl.style.color = overviewMode === 'good' ? 'var(--accent-text)' : 'var(--bad-color)';
   var listEl = document.getElementById('habits-overview-list');
   var stats = overviewMode === 'good'
     ? (appData.goodHabitStats || [])
