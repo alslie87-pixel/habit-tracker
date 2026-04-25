@@ -1066,7 +1066,9 @@ function toggleOverview() {
     : (appData.badHabitStats || []);
   var sorted = stats.slice().sort(function(a,b){ return b.percent - a.percent; });
   listEl.innerHTML = sorted.map(function(h, i) {
-    var color = h.percent >= 70 ? 'var(--good-color,var(--accent-text))' : h.percent >= 50 ? 'var(--badge-week-text)' : 'var(--bad-color)';
+    var color = overviewMode === 'good'
+  ? (h.percent >= 70 ? 'var(--good-color,var(--accent-text))' : h.percent >= 50 ? 'var(--badge-week-text)' : 'var(--bad-color)')
+  : (h.percent >= 70 ? 'var(--good-color,var(--accent-text))' : h.percent >= 50 ? 'var(--badge-week-text)' : 'var(--bad-color)');
     var border = i < sorted.length - 1 ? 'border-bottom:1px solid var(--border-default);' : '';
     return '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;' + border + '">' +
       '<span style="font-size:13px;color:var(--text-secondary);">' + h.name + '</span>' +
