@@ -239,14 +239,14 @@ html:not(.light) #theme-toggle { background: #1a1630; border: 1px solid rgba(123
       <div class="card th-card-good border rounded-3xl p-6 mb-3">
   <div class="flex items-center justify-between mb-4">
     <div id="overview-title" class="text-[11px] uppercase tracking-widest" style="color:var(--good-color,var(--accent-text))">Good habits overview</div>
-    <button onclick="toggleOverview()" style="border:1px solid var(--border-default);border-radius:100px;padding:4px 10px;background:var(--bg-card-inner);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:0px;">
-  <svg width="10" height="6" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M10 3L4 0V6L10 3Z" fill="var(--good-color,var(--accent-light))"/>
-    <line x1="0" y1="3" x2="8" y2="3" stroke="var(--good-color,var(--accent-light))" stroke-width="1.5"/>
+    <button onclick="toggleOverview()" style="border:1px solid var(--border-default);border-radius:100px;padding:4px 12px;background:var(--bg-card);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:1px;">
+  <svg width="14" height="8" viewBox="0 0 14 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M14 4L6 0V8L14 4Z" fill="var(--good-color,var(--accent-light))"/>
+    <line x1="0" y1="4" x2="11" y2="4" stroke="var(--good-color,var(--accent-light))" stroke-width="1.5"/>
   </svg>
-  <svg width="10" height="6" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M0 3L6 0V6L0 3Z" fill="var(--bad-color)"/>
-    <line x1="2" y1="3" x2="10" y2="3" stroke="var(--bad-color)" stroke-width="1.5"/>
+  <svg width="14" height="8" viewBox="0 0 14 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M0 4L8 0V8L0 4Z" fill="var(--bad-color)"/>
+    <line x1="3" y1="4" x2="14" y2="4" stroke="var(--bad-color)" stroke-width="1.5"/>
   </svg>
 </button>
   </div>
@@ -1065,8 +1065,8 @@ function addPullToClose(sheet, closeFn) {
 function toggleOverview() {
   overviewMode = overviewMode === 'good' ? 'bad' : 'good';
   var titleEl = document.getElementById('overview-title');
-  titleEl.textContent = overviewMode === 'good' ? 'Good habits overview' : 'Bad habits overview';
-  titleEl.style.color = overviewMode === 'good' ? 'var(--good-color,var(--accent-text))' : 'var(--bad-color)';
+titleEl.textContent = overviewMode === 'good' ? 'Good habits overview' : 'Bad habits overview';
+titleEl.style.color = overviewMode === 'good' ? 'var(--accent-light)' : 'var(--bad-color)';
   var listEl = document.getElementById('habits-overview-list');
   var stats = overviewMode === 'good'
     ? (appData.goodHabitStats || [])
