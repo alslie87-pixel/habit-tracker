@@ -338,6 +338,7 @@ module.exports = async (req, res) => {
       badCount,
       daysElapsed,
       goodHabitStats,
+      badHabitStats,
       worst,
       best,
       graveyard,
