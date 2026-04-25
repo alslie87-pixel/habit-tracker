@@ -886,10 +886,15 @@ var textColor    = isActive ? activeText   : 'var(--text-secondary)';
       var el = document.getElementById('manage-' + type + '-section');
       var addDisabled = count >= max;
       var addStyle = addDisabled ? 'opacity:0.4;cursor:not-allowed;' : 'cursor:pointer;';
-      var html = '<div class="flex items-center justify-between mb-3">' +
-        '<span style="font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted)">' + label + ' (' + count + '/' + max + ')</span>' +
-        '<button onclick="openAddHabit(\'' + type + '\')" style="font-size:12px;font-weight:700;padding:4px 12px;border-radius:100px;background:var(--good-bg);color:var(--accent-text);border:1px solid var(--border-accent);' + addStyle + '"' + (addDisabled ? ' disabled' : '') + '>+ Add</button>' +
-        '</div>';
+      var isBad = type === 'bad';
+      var headerColor = isBad ? 'var(--bad-color)' : 'var(--good-color,var(--accent-text))';
+var addBg = isBad ? 'var(--bad-bg)' : 'var(--good-bg)';
+var addColor = isBad ? 'var(--bad-color)' : 'var(--good-color,var(--accent-text))';
+var addBorder = isBad ? 'var(--border-bad)' : 'var(--border-good)';
+var html = '<div class="flex items-center justify-between mb-3">' +
+  '<span style="font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:' + headerColor + '">' + label + ' (' + count + '/' + max + ')</span>' +
+  '<button onclick="openAddHabit(\'' + type + '\')" style="font-size:12px;font-weight:700;padding:4px 12px;border-radius:100px;background:' + addBg + ';color:' + addColor + ';border:1px solid ' + addBorder + ';' + addStyle + '"' + (addDisabled ? ' disabled' : '') + '>+ Add</button>' +
+  '</div>';
       habits.forEach(function(h) {
         html += '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border-default);">' +
           '<span style="font-size:14px;color:var(--text-primary)">' + h.name + '</span>' +
