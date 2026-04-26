@@ -241,9 +241,46 @@ activeGood.forEach(h => {
     });
 
     // ── 8. STREAK / WEAKEST / SIGNAL FROM SHEET ─────────────
-    const streak    = monthData[weekRow] && monthData[weekRow][17] ? parseInt(monthData[weekRow][17]) || 0 : 0;
-    const weakest   = monthData[weekRow] && monthData[weekRow][18] ? String(monthData[weekRow][18]).trim() : 'None';
-    const signalMsg = monthData[weekRow] && monthData[weekRow][19] ? String(monthData[weekRow][19]).trim() : 'Keep going!';
+    // ── 8. STREAK CALCULATION + WEAKEST / SIGNAL FROM SHEET ──
+const todayNorm = new Date(today);
+todayNorm.setHours(0, 0, 0, 0);
+
+// Build flat list of all days newest first
+const allDayRows = [];
+for (let i = weekStartRows.length - 1; i >= 0; i--) {
+  for (let d = 6; d >= 0; d--) {
+    const r = weekStartRows[i] + d;
+    if (!monthData[r] || !monthData[r][1]) continue;
+    const rowDate = new Date(monthData[r][1]);
+    rowDate.setHours(0, 0, 0, 0);
+    if (rowDate > todayNorm) continue;
+    allDayRows.push({ r, rowDate });
+  }
+}
+
+// Count consecutive days where both bad + good habits hit 66%+
+let streak = 0;
+for (let i = 0; i < allDayRows.length; i++) {
+  const { r } = allDayRows[i];
+  let badDone = 0;
+  activeBad.forEach(h => {
+    if (monthData[r] && monthData[r][h.colIndex] === 'TRUE') badDone++;
+  });
+  const badPct = activeBad.length > 0 ? badDone / activeBad.length : 1;
+  let goodDone = 0;
+  activeGood.forEach(h => {
+    if (monthData[r] && monthData[r][h.colIndex] === 'TRUE') goodDone++;
+  });
+  const goodPct = activeGood.length > 0 ? goodDone / activeGood.length : 1;
+  if (badPct >= 0.66 && goodPct >= 0.66) {
+    streak++;
+  } else {
+    break;
+  }
+}
+
+const weakest   = monthData[weekRow] && monthData[weekRow][18] ? String(monthData[weekRow][18]).trim() : 'None';
+const signalMsg = monthData[weekRow] && monthData[weekRow][19] ? String(monthData[weekRow][19]).trim() : 'Keep going!';
 
     // ── 9. FOCUS HABITS ──────────────────────────────────────
     const goodFocus = signal[12] && signal[12][1] ? signal[12][1] : 'Not set';
