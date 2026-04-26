@@ -262,21 +262,16 @@ for (let i = weekStartRows.length - 1; i >= 0; i--) {
 let streak = 0;
 for (let i = 0; i < allDayRows.length; i++) {
   const { r } = allDayRows[i];
-  let badDone = 0;
-  activeBad.forEach(h => {
-    if (monthData[r] && monthData[r][h.colIndex] === 'TRUE') badDone++;
-  });
-  const badPct = activeBad.length > 0 ? badDone / activeBad.length : 1;
   let goodDone = 0;
-  activeGood.forEach(h => {
-    if (monthData[r] && monthData[r][h.colIndex] === 'TRUE') goodDone++;
-  });
-  const goodPct = activeGood.length > 0 ? goodDone / activeGood.length : 1;
-  if (badPct >= 0.66 && goodPct >= 0.66) {
-    streak++;
-  } else {
-    break;
-  }
+activeGood.forEach(h => {
+  if (monthData[r] && monthData[r][h.colIndex] === 'TRUE') goodDone++;
+});
+const goodPct = activeGood.length > 0 ? goodDone / activeGood.length : 1;
+if (goodPct >= 0.66) {
+  streak++;
+} else {
+  break;
+}
 }
 
 const weakest   = monthData[weekRow] && monthData[weekRow][18] ? String(monthData[weekRow][18]).trim() : 'None';
