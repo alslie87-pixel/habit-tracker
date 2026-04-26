@@ -381,7 +381,24 @@ const signalMsg = monthData[weekRow] && monthData[weekRow][19] ? String(monthDat
       ? new Date(monthData[weekRow][1]).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
       : 'N/A';
 
-    // ── 15. RESPOND ──────────────────────────────────────────
+   // ── 15. RESPOND ──────────────────────────────────────────
+    // Write streak to Dashboard sheet
+    try {
+      const writeAuth = new google.auth.GoogleAuth({
+        credentials: creds,
+        scopes: ['https://www.googleapis.com/auth/spreadsheets']
+      });
+      const writeSheets = google.sheets({ version: 'v4', auth: writeAuth });
+      await writeSheets.spreadsheets.values.update({
+        spreadsheetId: sheetId,
+        range: "'⚡ Dashboard'!C7",
+        valueInputOption: 'RAW',
+        requestBody: { values: [[streak]] }
+      });
+    } catch (e) {
+      console.error('Streak write failed:', e.message);
+    }
+
     res.status(200).json({
       month:        monthName,
       weekStart:    weekStartDate,
