@@ -251,7 +251,9 @@ for (let i = weekStartRows.length - 1; i >= 0; i--) {
   for (let d = 6; d >= 0; d--) {
     const r = weekStartRows[i] + d;
     if (!monthData[r] || !monthData[r][1]) continue;
-    const rowDate = new Date(monthData[r][1]);
+    const rawDate = monthData[r][1];
+    const parts = new Date(rawDate);
+    const rowDate = new Date(parts.getUTCFullYear(), parts.getUTCMonth(), parts.getUTCDate());
     rowDate.setHours(0, 0, 0, 0);
     if (rowDate > todayNorm) continue;
     allDayRows.push({ r, rowDate });
