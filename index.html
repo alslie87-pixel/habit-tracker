@@ -908,9 +908,9 @@
       var addStyle = addDisabled ? 'opacity:0.4;cursor:not-allowed;' : 'cursor:pointer;';
       var isBad = type === 'bad';
       var headerColor = isBad ? 'var(--bad-color)' : 'var(--good-color,var(--accent-text))';
-      var addBg     = isBad ? 'var(--bad-bg)'             : 'var(--good-color-bg,var(--good-bg))';
-      var addColor  = isBad ? 'var(--bad-color)'           : 'var(--good-color,var(--accent-text))';
-      var addBorder = isBad ? 'var(--border-bad)'          : 'var(--good-color-border,var(--border-good))';
+      var addBg     = isBad ? 'var(--good-bg)'             : 'var(--good-color-bg,var(--good-bg))';
+      var addColor  = isBad ? 'var(--accent-text)'          : 'var(--good-color,var(--accent-text))';
+      var addBorder = isBad ? 'var(--border-accent)'        : 'var(--good-color-border,var(--border-good))';
       var html = '<div class="flex items-center justify-between mb-3">' +
         '<span style="font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:' + headerColor + '">' + label + ' (' + count + '/' + max + ')</span>' +
         '<button onclick="openAddHabit(\'' + type + '\')" style="font-size:12px;font-weight:700;padding:4px 12px;border-radius:100px;background:' + addBg + ';color:' + addColor + ';border:1px solid ' + addBorder + ';' + addStyle + '"' + (addDisabled ? ' disabled' : '') + '>+ Add</button>' +
