@@ -1,12 +1,9 @@
 const { google } = require('googleapis');
-
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   if (req.method === 'OPTIONS') return res.status(200).end();
-
   try {
     const { sheetName, row, col, currentValue } = req.body;
-
     const creds = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT);
     const auth = new google.auth.GoogleAuth({
       credentials: creds,
@@ -14,18 +11,15 @@ module.exports = async (req, res) => {
     });
     const sheets = google.sheets({ version: 'v4', auth });
     const sheetId = process.env.GOOGLE_SHEET_ID;
-
     const colLetter = String.fromCharCode(64 + col);
     const range = `'${sheetName}'!${colLetter}${row}`;
     const newValue = !currentValue;
-
     await sheets.spreadsheets.values.update({
       spreadsheetId: sheetId,
       range: range,
       valueInputOption: 'USER_ENTERED',
       requestBody: { values: [[newValue]] }
     });
-
     res.status(200).json({ success: true, newValue });
   } catch (err) {
     console.error(err);
