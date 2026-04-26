@@ -135,8 +135,8 @@ module.exports = async (req, res) => {
 
     // ── 5. WEEKLY % + TREND ──────────────────────────────────
     let weeklyPercent = 0;
-    if (monthData[summaryRow] && monthData[summaryRow][16]) {
-      const raw = parseFloat(monthData[summaryRow][16]);
+    if (monthData[summaryRow] && monthData[summaryRow][17]) {
+      const raw = parseFloat(monthData[summaryRow][17]);
       weeklyPercent = raw > 1 ? Math.round(raw) : Math.round(raw * 100);
     }
 
