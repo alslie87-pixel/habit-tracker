@@ -702,7 +702,7 @@
           chip.className = 'habit-chip flex items-center gap-1.5 rounded-xl px-2 py-1 text-[9px] font-medium cursor-pointer';
           const isLight = document.documentElement.classList.contains('light');
           const goodOffBg = isLight ? '#eef6ee' : 'var(--chip-unchecked-good-bg)';
-          const goodOffText = isLight ? '#5a8a60' : 'var(--chip-unchecked-good-text)';
+          const goodOffText = isLight ? '#5a8a60' : '#888899';
           chip.style.cssText = 'background:' + (isOn ? 'var(--accent)' : goodOffBg) + ';color:' + (isOn ? '#fff' : goodOffText) + ';';
           chip.dataset.sheet = data.sheetName;
           chip.dataset.row = day.row;
@@ -750,7 +750,7 @@
       } else {
         const isLight = document.documentElement.classList.contains('light');
         const goodOffBg = isLight ? '#eef6ee' : 'var(--chip-unchecked-good-bg)';
-        const goodOffText = isLight ? '#5a8a60' : 'var(--chip-unchecked-good-text)';
+        const goodOffText = isLight ? '#5a8a60' : '#888899';
         chip.style.background = newValue ? 'var(--accent)' : goodOffBg;
         chip.style.color = newValue ? '#fff' : goodOffText;
         icon.textContent = newValue ? '\u2713' : '\u25CB';
