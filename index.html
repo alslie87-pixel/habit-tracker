@@ -678,10 +678,7 @@
           var chip = document.createElement('div');
           var isOn = habit.checked;
           chip.className = 'habit-chip flex items-center gap-1 rounded-xl px-1.5 py-1 text-[9px] font-medium cursor-pointer';
-          var isLightNow = document.documentElement.classList.contains('light');
-          var checkedBg = isLightNow ? 'var(--good-color-bg)' : 'var(--good-bg)';
-          var checkedColor = isLightNow ? 'var(--good-color)' : '#fff';
-          chip.style.cssText = 'background:' + (isOn ? checkedBg : 'var(--bad-bg)') + ';color:' + (isOn ? checkedColor : 'var(--bad-color)') + ';';
+          chip.style.cssText = 'background:' + (isOn ? 'var(--accent)' : 'var(--bad-bg)') + ';color:' + (isOn ? '#fff' : 'var(--bad-color)') + ';';
           chip.dataset.sheet = data.sheetName;
           chip.dataset.row = day.row;
           chip.dataset.col = habit.col;
@@ -706,7 +703,7 @@
           const isLight = document.documentElement.classList.contains('light');
           const goodOffBg = isLight ? '#eef6ee' : 'var(--chip-unchecked-good-bg)';
           const goodOffText = isLight ? '#5a8a60' : 'var(--chip-unchecked-good-text)';
-          chip.style.cssText = 'background:' + (isOn ? 'var(--good-bg)' : goodOffBg) + ';color:' + (isOn ? '#fff' : goodOffText) + ';';
+          chip.style.cssText = 'background:' + (isOn ? 'var(--accent)' : goodOffBg) + ';color:' + (isOn ? '#fff' : goodOffText) + ';';
           chip.dataset.sheet = data.sheetName;
           chip.dataset.row = day.row;
           chip.dataset.col = habit.col;
@@ -747,15 +744,14 @@
       var newValue = !currentValue;
       chip.dataset.checked = newValue;
       if (type === 'bad') {
-        var isLightTap = document.documentElement.classList.contains('light');
-        chip.style.background = newValue ? (isLightTap ? 'var(--good-color-bg)' : 'var(--good-bg)') : 'var(--bad-bg)';
-        chip.style.color = newValue ? (isLightTap ? 'var(--good-color)' : '#fff') : 'var(--bad-color)';
+        chip.style.background = newValue ? 'var(--accent)' : 'var(--bad-bg)';
+        chip.style.color = newValue ? '#fff' : 'var(--bad-color)';
         icon.textContent = newValue ? '\u2713' : '\u2717';
       } else {
         const isLight = document.documentElement.classList.contains('light');
         const goodOffBg = isLight ? '#eef6ee' : 'var(--chip-unchecked-good-bg)';
         const goodOffText = isLight ? '#5a8a60' : 'var(--chip-unchecked-good-text)';
-        chip.style.background = newValue ? 'var(--good-bg)' : goodOffBg;
+        chip.style.background = newValue ? 'var(--accent)' : goodOffBg;
         chip.style.color = newValue ? '#fff' : goodOffText;
         icon.textContent = newValue ? '\u2713' : '\u25CB';
       }
