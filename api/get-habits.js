@@ -23,7 +23,7 @@ module.exports = async (req, res) => {
     // Skip header row, assign sheet column indices dynamically
     // bad habits start at column C (index 2), good at column I (index 8)
     let badColIdx  = 2;
-    let goodColIdx = 8;
+    let goodColIdx = 9;
 
     const badHabits  = [];
     const goodHabits = [];
