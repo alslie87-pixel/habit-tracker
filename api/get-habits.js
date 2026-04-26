@@ -261,19 +261,25 @@ for (let i = weekStartRows.length - 1; i >= 0; i--) {
 }
 
 // Count consecutive days where both bad + good habits hit 66%+
+// Count consecutive past days only — today never counts
 let streak = 0;
 for (let i = 0; i < allDayRows.length; i++) {
-  const { r } = allDayRows[i];
+  const { r, rowDate } = allDayRows[i];
+
+  // Skip today entirely
+  if (rowDate.getTime() === todayNorm.getTime()) continue;
+
   let goodDone = 0;
-activeGood.forEach(h => {
-  if (monthData[r] && monthData[r][h.colIndex] === 'TRUE') goodDone++;
-});
-const goodPct = activeGood.length > 0 ? goodDone / activeGood.length : 1;
-if (goodPct >= 0.66) {
-  streak++;
-} else {
-  break;
-}
+  activeGood.forEach(h => {
+    if (monthData[r] && monthData[r][h.colIndex] === 'TRUE') goodDone++;
+  });
+  const goodPct = activeGood.length > 0 ? goodDone / activeGood.length : 1;
+
+  if (goodPct >= 0.66) {
+    streak++;
+  } else {
+    break;
+  }
 }
 
 const weakest   = monthData[weekRow] && monthData[weekRow][18] ? String(monthData[weekRow][18]).trim() : 'None';
