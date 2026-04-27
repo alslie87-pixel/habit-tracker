@@ -16,25 +16,23 @@ module.exports = async (req, res) => {
     const sheets = google.sheets({ version: 'v4', auth });
     const sheetId = process.env.GOOGLE_SHEET_ID;
 
-    // action: 'remove' | 'replace' | 'add'
-    // type: 'bad' | 'good'
-    // name: current habit name (for remove/replace)
-    // newName: new habit name (for replace/add)
     const { action, type, name, newName } = req.body;
-
     if (!action || !type) {
       return res.status(400).json({ error: 'Missing action or type' });
     }
 
-    // Read current Config
+    // Read Control Panel — B6:E20
+    // Row 6 = header, rows 7-20 = habit data
+    // B=Type, C=Name, D=Status, E=Note
     const configRes = await sheets.spreadsheets.values.get({
       spreadsheetId: sheetId,
-      range: "'Config'!A1:D20"
+      range: "'⚙️ Control Panel'!B6:E20"
     });
     const rows = configRes.data.values || [];
 
-    // Find the target row index (1-based for Sheets API, but 0-based in array)
-    // rows[0] = header, rows[1]+ = habits
+    // rows[0] = header (row 6 in sheet)
+    // rows[1] = first habit (row 7 in sheet)
+    // Sheet row = array index + 6
     let targetRowIdx = -1;
     let emptySlotIdx = -1;
 
@@ -43,132 +41,99 @@ module.exports = async (req, res) => {
       const rowName   = (rows[i][1] || '').trim();
       const rowStatus = (rows[i][2] || '').trim().toLowerCase();
 
-      // Find target habit
-      if (rowType === type && rowName === name) {
-        targetRowIdx = i;
-      }
-
-      // Find first empty slot of matching type
-      if (rowType === type && rowStatus === 'empty' && emptySlotIdx === -1) {
-        emptySlotIdx = i;
-      }
+      if (rowType === type && rowName === name) targetRowIdx = i;
+      if (rowType === type && rowStatus === 'empty' && emptySlotIdx === -1) emptySlotIdx = i;
     }
 
-    // Count active habits of this type
     const activeCount = rows.slice(1).filter(r =>
       (r[0] || '').trim().toLowerCase() === type &&
       (r[2] || '').trim().toLowerCase() === 'active'
     ).length;
 
+    // Convert array index to actual sheet row number
+    // rows[1] = sheet row 7, so sheetRow = arrayIdx + 6
+    function toSheetRow(arrayIdx) { return arrayIdx + 6; }
+
     if (action === 'remove') {
       if (targetRowIdx === -1) return res.status(404).json({ error: 'Habit not found' });
-
-      const currentStatus = (rows[targetRowIdx][2] || '').trim().toLowerCase();
-      const currentPct    = parseInt(rows[targetRowIdx][3] || '0') || 0;
-
-      // Bad habit: ghost if conquered (90%+), else empty
-      // Good habit: always retired
-      let newStatus = 'empty';
-      if (type === 'bad') {
-        // Check if it's in conquered state or has conquest note
-        const note = (rows[targetRowIdx][3] || '').toLowerCase();
-        newStatus = (currentStatus === 'conquered' || note.includes('conquered')) ? 'ghost' : 'empty';
-      } else {
-        newStatus = 'retired';
-      }
-
-      const sheetRow = targetRowIdx + 1; // 1-indexed
+      const note = (rows[targetRowIdx][3] || '').toLowerCase();
+      const oldStatus = (rows[targetRowIdx][2] || '').trim().toLowerCase();
+      let newStatus = type === 'bad'
+        ? ((oldStatus === 'conquered' || note.includes('conquered')) ? 'ghost' : 'empty')
+        : 'retired';
+      const sheetRow = toSheetRow(targetRowIdx);
       await sheets.spreadsheets.values.update({
         spreadsheetId: sheetId,
-        range: `'Config'!C${sheetRow}`,
+        range: `'⚙️ Control Panel'!D${sheetRow}`,
         valueInputOption: 'RAW',
         requestBody: { values: [[newStatus]] }
       });
-
       return res.status(200).json({ success: true, action: 'removed', newStatus });
     }
 
     if (action === 'replace') {
       if (targetRowIdx === -1) return res.status(404).json({ error: 'Habit not found' });
-      if (!newName)            return res.status(400).json({ error: 'Missing newName' });
-
-      const sheetRow  = targetRowIdx + 1;
-      const note      = (rows[targetRowIdx][3] || '').toLowerCase();
+      if (!newName) return res.status(400).json({ error: 'Missing newName' });
+      const note = (rows[targetRowIdx][3] || '').toLowerCase();
       const oldStatus = (rows[targetRowIdx][2] || '').trim().toLowerCase();
-
-      // Set old habit status
-      let oldNewStatus = 'empty';
-      if (type === 'bad') {
-        oldNewStatus = (oldStatus === 'conquered' || note.includes('conquered')) ? 'ghost' : 'empty';
-      } else {
-        oldNewStatus = 'retired';
-      }
-
-      // Update old habit to ghost/retired/empty
+      let oldNewStatus = type === 'bad'
+        ? ((oldStatus === 'conquered' || note.includes('conquered')) ? 'ghost' : 'empty')
+        : 'retired';
+      const sheetRow = toSheetRow(targetRowIdx);
       await sheets.spreadsheets.values.update({
         spreadsheetId: sheetId,
-        range: `'Config'!C${sheetRow}`,
+        range: `'⚙️ Control Panel'!D${sheetRow}`,
         valueInputOption: 'RAW',
         requestBody: { values: [[oldNewStatus]] }
       });
-
-      // Find empty slot for new habit — reuse same row if going empty, else find next empty
-      let newSlotRow = sheetRow; // reuse same row
+      let newSlotRow = sheetRow;
       if (oldNewStatus !== 'empty') {
-        // Need a different slot — find existing empty slot or append
         if (emptySlotIdx !== -1 && emptySlotIdx !== targetRowIdx) {
-          newSlotRow = emptySlotIdx + 1;
+          newSlotRow = toSheetRow(emptySlotIdx);
           await sheets.spreadsheets.values.update({
             spreadsheetId: sheetId,
-            range: `'Config'!A${newSlotRow}:D${newSlotRow}`,
+            range: `'⚙️ Control Panel'!B${newSlotRow}:E${newSlotRow}`,
             valueInputOption: 'RAW',
             requestBody: { values: [[type, newName, 'active', '']] }
           });
         } else {
-          // Append new row at end of this type's section
           await sheets.spreadsheets.values.append({
             spreadsheetId: sheetId,
-            range: "'Config'!A:D",
+            range: "'⚙️ Control Panel'!B:E",
             valueInputOption: 'RAW',
             requestBody: { values: [[type, newName, 'active', '']] }
           });
         }
       } else {
-        // Slot is freed — write new habit into same row
         await sheets.spreadsheets.values.update({
           spreadsheetId: sheetId,
-          range: `'Config'!A${newSlotRow}:D${newSlotRow}`,
+          range: `'⚙️ Control Panel'!B${newSlotRow}:E${newSlotRow}`,
           valueInputOption: 'RAW',
           requestBody: { values: [[type, newName, 'active', '']] }
         });
       }
-
       return res.status(200).json({ success: true, action: 'replaced' });
     }
 
     if (action === 'add') {
       if (!newName) return res.status(400).json({ error: 'Missing newName' });
       if (activeCount >= 7) return res.status(400).json({ error: 'Maximum 7 habits reached' });
-
       if (emptySlotIdx !== -1) {
-        // Fill existing empty slot
-        const slotRow = emptySlotIdx + 1;
+        const slotRow = toSheetRow(emptySlotIdx);
         await sheets.spreadsheets.values.update({
           spreadsheetId: sheetId,
-          range: `'Config'!A${slotRow}:D${slotRow}`,
+          range: `'⚙️ Control Panel'!B${slotRow}:E${slotRow}`,
           valueInputOption: 'RAW',
           requestBody: { values: [[type, newName, 'active', '']] }
         });
       } else {
-        // Append new row
         await sheets.spreadsheets.values.append({
           spreadsheetId: sheetId,
-          range: "'Config'!A:D",
+          range: "'⚙️ Control Panel'!B:E",
           valueInputOption: 'RAW',
           requestBody: { values: [[type, newName, 'active', '']] }
         });
       }
-
       return res.status(200).json({ success: true, action: 'added' });
     }
 
