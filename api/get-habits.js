@@ -55,10 +55,11 @@ module.exports = async (req, res) => {
                         "July","August","September","October","November","December"];
     const monthName = monthNames[today.getMonth()];
 
-    const signalRes = await sheets.spreadsheets.values.get({
+    const focusRes = await sheets.spreadsheets.values.get({
       spreadsheetId: sheetId,
-      range: "'⚡ Dashboard'!A1:D15"
+      range: "'⚙️ Control Panel'!B23:C26"
     });
+    const focusData = focusRes.data.values || [];
     const signal = signalRes.data.values || [];
 
     // Always fetch at least to column T (index 19) to cover Q/R/S/T formula columns
@@ -286,10 +287,10 @@ const weakest   = monthData[weekRow] && monthData[weekRow][18] ? String(monthDat
 const signalMsg = monthData[weekRow] && monthData[weekRow][19] ? String(monthData[weekRow][19]).trim() : 'Keep going!';
 
     // ── 9. FOCUS HABITS ──────────────────────────────────────
-    const goodFocus = signal[12] && signal[12][1] ? signal[12][1] : 'Not set';
-    const badFocus  = signal[12] && signal[12][2] ? signal[12][2] : 'Not set';
-    const goodCount = signal[5]  && signal[5][3]  ? parseInt(signal[5][3])  || 0 : 0;
-    const badCount  = signal[6]  && signal[6][3]  ? parseInt(signal[6][3])  || 0 : 0;
+    const goodFocus = focusData[1] && focusData[1][1] ? focusData[1][1] : 'Not set';
+    const badFocus  = focusData[2] && focusData[2][1] ? focusData[2][1] : 'Not set';
+    const goodCount = 0;
+    const badCount  = 0;
 
     // ── 10. DAYS ELAPSED + TOTAL TRACKABLE ──────────────────
     const firstOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
