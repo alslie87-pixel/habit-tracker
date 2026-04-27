@@ -60,7 +60,6 @@ module.exports = async (req, res) => {
       range: "'⚙️ Control Panel'!B23:C26"
     });
     const focusData = focusRes.data.values || [];
-    const signal = signalRes.data.values || [];
 
     // Always fetch at least to column T (index 19) to cover Q/R/S/T formula columns
     const lastColIdx    = Math.max(badColIdx, goodColIdx - 1, 19);
