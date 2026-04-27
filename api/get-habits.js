@@ -144,8 +144,8 @@ module.exports = async (req, res) => {
     const weeklyTrend = [];
     for (let i = 0; i < weekStartRows.length; i++) {
       const sr = weekStartRows[i] + 8;
-      if (monthData[sr] && monthData[sr][16]) {
-        const raw = parseFloat(monthData[sr][16]);
+      if (monthData[sr] && monthData[sr][17]) {
+        const raw = parseFloat(monthData[sr][17]);
         weeklyTrend.push(raw > 1 ? Math.round(raw) : Math.round(raw * 100));
       } else {
         weeklyTrend.push(0);
