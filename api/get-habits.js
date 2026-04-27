@@ -16,7 +16,7 @@ module.exports = async (req, res) => {
     // ── 1. READ CONFIG TAB ───────────────────────────────────
     const configRes = await sheets.spreadsheets.values.get({
       spreadsheetId: sheetId,
-      range: "'⚙️ Control Panel'!A1:D20"
+      range: "'⚙️ Control Panel'!B6:E20"
     });
     const configRows = configRes.data.values || [];
 
