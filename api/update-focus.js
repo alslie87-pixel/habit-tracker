@@ -11,7 +11,9 @@ module.exports = async (req, res) => {
     });
     const sheets = google.sheets({ version: 'v4', auth });
     const sheetId = process.env.GOOGLE_SHEET_ID;
-    const cell = type === 'good' ? "'🌅 Morning Signal'!B13" : "'🌅 Morning Signal'!C13";
+    const cell = type === 'good'
+      ? "'⚙️ Control Panel'!B24"
+      : "'⚙️ Control Panel'!B25";
     await sheets.spreadsheets.values.update({
       spreadsheetId: sheetId,
       range: cell,
