@@ -16,7 +16,7 @@ module.exports = async (req, res) => {
     // ── 1. READ CONFIG TAB ───────────────────────────────────
     const configRes = await sheets.spreadsheets.values.get({
       spreadsheetId: sheetId,
-      range: "'Config'!A1:D20"
+      range: "'⚙️ Control Panel'!A1:D20"
     });
     const configRows = configRes.data.values || [];
 
@@ -57,7 +57,7 @@ module.exports = async (req, res) => {
 
     const signalRes = await sheets.spreadsheets.values.get({
       spreadsheetId: sheetId,
-      range: "'🌅 Morning Signal'!A1:D15"
+      range: "'⚡ Dashboard'!A1:D15"
     });
     const signal = signalRes.data.values || [];
 
