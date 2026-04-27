@@ -286,8 +286,8 @@ const weakest   = monthData[weekRow] && monthData[weekRow][18] ? String(monthDat
 const signalMsg = monthData[weekRow] && monthData[weekRow][19] ? String(monthData[weekRow][19]).trim() : 'Keep going!';
 
     // ── 9. FOCUS HABITS ──────────────────────────────────────
-    const goodFocus = focusData[1] && focusData[1][1] ? focusData[1][1] : 'Not set';
-    const badFocus  = focusData[2] && focusData[2][1] ? focusData[2][1] : 'Not set';
+    const goodFocus = focusData[1] && focusData[1][0] ? focusData[1][0] : 'Not set';
+    const badFocus  = focusData[2] && focusData[2][0] ? focusData[2][0] : 'Not set';
     const goodCount = 0;
     const badCount  = 0;
 
