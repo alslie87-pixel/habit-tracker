@@ -1,5 +1,55 @@
 const { google } = require('googleapis');
 
+// ── v28 SHEET STRUCTURE ──────────────────────────────────────
+// Control Panel: E=Type, F=Habit name, G=Status, H=Note (rows 7-20)
+//                Focus: C20 (Building/good), C21 (Eliminating/bad)
+//                Start Year: C23
+// Month tabs:    bad habits C..I (0-based 2..8), good J..P (9..15)
+//                Q=BH% (16), R=GH% (17), S=Streak (18),
+//                T=Weakest (19), U=Signal (20)
+// Reads use UNFORMATTED_VALUE: dates arrive as serial numbers,
+// checkboxes as booleans, percents as 0..1 numbers.
+
+const CP_HABITS_RANGE = "'⚙️ Control Panel'!E6:H20"; // header + 14 slots
+const CP_FOCUS_RANGE  = "'⚙️ Control Panel'!C20:C21";
+const BAD_FIRST_COL   = 2;  // C
+const GOOD_FIRST_COL  = 9;  // J
+const COL_GH_WEEKLY   = 17; // R
+const COL_WEAKEST     = 19; // T
+const COL_SIGNAL      = 20; // U
+
+// Google Sheets serial → local midnight Date
+function serialToDate(v) {
+  if (v === null || v === undefined || v === '') return null;
+  if (typeof v === 'number') {
+    const ud = new Date(Date.UTC(1899, 11, 30) + Math.round(v) * 86400000);
+    return new Date(ud.getUTCFullYear(), ud.getUTCMonth(), ud.getUTCDate());
+  }
+  const d = new Date(v);
+  if (isNaN(d)) return null;
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
+function isChecked(v) { return v === true || v === 'TRUE'; }
+
+function toPercent(raw) {
+  const n = typeof raw === 'number' ? raw : parseFloat(raw);
+  if (isNaN(n)) return 0;
+  return n > 1 ? Math.round(n) : Math.round(n * 100);
+}
+
+function colIndexToLetter(index) {
+  let letter = '';
+  let n = index + 1;
+  while (n > 0) {
+    const remainder = (n - 1) % 26;
+    letter = String.fromCharCode(65 + remainder) + letter;
+    n = Math.floor((n - 1) / 26);
+  }
+  return letter;
+}
+
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   if (req.method === 'OPTIONS') return res.status(200).end();
@@ -8,79 +58,72 @@ module.exports = async (req, res) => {
     const creds = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT);
     const auth = new google.auth.GoogleAuth({
       credentials: creds,
-      scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly']
+      scopes: ['https://www.googleapis.com/auth/spreadsheets']
     });
     const sheets = google.sheets({ version: 'v4', auth });
     const sheetId = process.env.GOOGLE_SHEET_ID;
 
-    // ── 1. READ CONFIG TAB ───────────────────────────────────
+    // ── 1. READ CONFIG (habit list, position-based mapping) ──
     const configRes = await sheets.spreadsheets.values.get({
       spreadsheetId: sheetId,
-      range: "'⚙️ Control Panel'!B6:E20"
+      range: CP_HABITS_RANGE
     });
     const configRows = configRes.data.values || [];
 
-    // Skip header row, assign sheet column indices dynamically
-    // bad habits start at column C (index 2), good at column I (index 8)
-    let badColIdx  = 2;
-    let goodColIdx = 9;
-
-    const badHabits  = [];
+    const badHabits = [];
     const goodHabits = [];
 
-    configRows.slice(1).forEach(row => {
-      const type   = (row[0] || '').trim().toLowerCase();
-      const name   = (row[1] || '').trim();
-      const status = (row[2] || '').trim().toLowerCase();
-      const note   = (row[3] || '').trim();
+    // rows[1] = CP row 7. Column index follows the ROW POSITION,
+    // so empty slots in the middle no longer shift later habits.
+    configRows.slice(1).forEach((row, idx) => {
+      const type   = (row[0] || '').toString().trim().toLowerCase();
+      const name   = (row[1] || '').toString().trim();
+      const status = (row[2] || '').toString().trim().toLowerCase();
+      const note   = (row[3] || '').toString().trim();
+      if (!type || !name || status === 'empty') return;
 
-      if (!type || status === 'empty') return;
-
-      if (type === 'bad') {
-        badHabits.push({ name, status, note, colIndex: badColIdx });
-        badColIdx++;
-      } else if (type === 'good') {
-        goodHabits.push({ name, status, note, colIndex: goodColIdx });
-        goodColIdx++;
+      if (type === 'bad' && idx <= 6) {
+        badHabits.push({ name, status, note, colIndex: BAD_FIRST_COL + idx });
+      } else if (type === 'good' && idx >= 7) {
+        goodHabits.push({ name, status, note, colIndex: GOOD_FIRST_COL + (idx - 7) });
       }
     });
 
-    const activeBad      = badHabits.filter(h => h.status === 'active');
-    const activeGood     = goodHabits.filter(h => h.status === 'active');
-    const conqueredBad   = badHabits.filter(h => h.status === 'conquered');
+    const activeBad    = badHabits.filter(h => h.status === 'active');
+    const activeGood   = goodHabits.filter(h => h.status === 'active');
+    const conqueredBad = badHabits.filter(h => h.status === 'conquered');
 
-    // ── 2. READ SHEET DATA ───────────────────────────────────
+    // ── 2. READ FOCUS + MONTH DATA ───────────────────────────
     const today = new Date();
+    today.setHours(0, 0, 0, 0);
     const monthNames = ["January","February","March","April","May","June",
                         "July","August","September","October","November","December"];
     const monthName = monthNames[today.getMonth()];
 
     const focusRes = await sheets.spreadsheets.values.get({
       spreadsheetId: sheetId,
-      range: "'⚙️ Control Panel'!B23:C26"
+      range: CP_FOCUS_RANGE
     });
     const focusData = focusRes.data.values || [];
+    const goodFocus = focusData[0] && focusData[0][0] ? String(focusData[0][0]) : 'Not set';
+    const badFocus  = focusData[1] && focusData[1][0] ? String(focusData[1][0]) : 'Not set';
 
-    // Always fetch at least to column T (index 19) to cover Q/R/S/T formula columns
-    const lastColIdx    = Math.max(badColIdx, goodColIdx - 1, 19);
-    const lastColLetter = colIndexToLetter(lastColIdx);
-
+    const lastColLetter = colIndexToLetter(COL_SIGNAL); // U
     const monthRes = await sheets.spreadsheets.values.get({
       spreadsheetId: sheetId,
-      range: `'${monthName}'!A1:${lastColLetter}46`
+      range: `'${monthName}'!A1:${lastColLetter}46`,
+      valueRenderOption: 'UNFORMATTED_VALUE'
     });
     const monthData = monthRes.data.values || [];
 
     // ── 3. FIND CURRENT WEEK ─────────────────────────────────
-    today.setHours(0, 0, 0, 0);
-    const weekStartRows = [1, 10, 19, 28, 37];
-    let currentWeekIdx  = 0;
+    const weekStartRows = [1, 10, 19, 28, 37]; // 0-based array rows (sheet rows 2,11,20,29,38)
+    let currentWeekIdx = 0;
 
     for (let i = 0; i < weekStartRows.length; i++) {
       const row = weekStartRows[i];
-      if (monthData[row] && monthData[row][1]) {
-        const dateVal = new Date(monthData[row][1]);
-        dateVal.setHours(0, 0, 0, 0);
+      const dateVal = monthData[row] ? serialToDate(monthData[row][1]) : null;
+      if (dateVal) {
         const endDate = new Date(dateVal);
         endDate.setDate(endDate.getDate() + 6);
         if (today >= dateVal && today <= endDate) {
@@ -100,16 +143,13 @@ module.exports = async (req, res) => {
     for (let d = 0; d < 7; d++) {
       const row = weekRow + d;
       if (!monthData[row]) continue;
-
-      const dateVal  = monthData[row][1] ? new Date(monthData[row][1]) : null;
-      const dateNorm = dateVal ? new Date(dateVal) : null;
-      if (dateNorm) dateNorm.setHours(0, 0, 0, 0);
+      const dateVal = serialToDate(monthData[row][1]);
 
       const dayData = {
         day:     days[d],
         date:    dateVal ? dateVal.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '',
-        row:     weekRow + d + 1,
-        isToday: dateNorm ? dateNorm.getTime() === today.getTime() : false,
+        row:     row + 1,
+        isToday: dateVal ? dateVal.getTime() === today.getTime() : false,
         bad:     [],
         good:    []
       };
@@ -117,15 +157,14 @@ module.exports = async (req, res) => {
       activeBad.forEach(h => {
         dayData.bad.push({
           name:    h.name,
-          checked: monthData[row][h.colIndex] === 'TRUE' || monthData[row][h.colIndex] === true,
+          checked: isChecked(monthData[row][h.colIndex]),
           col:     h.colIndex + 1
         });
       });
-
       activeGood.forEach(h => {
         dayData.good.push({
           name:    h.name,
-          checked: monthData[row][h.colIndex] === 'TRUE' || monthData[row][h.colIndex] === true,
+          checked: isChecked(monthData[row][h.colIndex]),
           col:     h.colIndex + 1
         });
       });
@@ -135,23 +174,23 @@ module.exports = async (req, res) => {
 
     // ── 5. WEEKLY % + TREND ──────────────────────────────────
     let weeklyPercent = 0;
-    if (monthData[summaryRow] && monthData[summaryRow][17]) {
-      const raw = parseFloat(monthData[summaryRow][17]);
-      weeklyPercent = raw > 1 ? Math.round(raw) : Math.round(raw * 100);
+    if (monthData[summaryRow] && monthData[summaryRow][COL_GH_WEEKLY] !== undefined &&
+        monthData[summaryRow][COL_GH_WEEKLY] !== '') {
+      weeklyPercent = toPercent(monthData[summaryRow][COL_GH_WEEKLY]);
     }
 
     const weeklyTrend = [];
     for (let i = 0; i < weekStartRows.length; i++) {
       const sr = weekStartRows[i] + 8;
-      if (monthData[sr] && monthData[sr][17]) {
-        const raw = parseFloat(monthData[sr][17]);
-        weeklyTrend.push(raw > 1 ? Math.round(raw) : Math.round(raw * 100));
+      if (monthData[sr] && monthData[sr][COL_GH_WEEKLY] !== undefined && monthData[sr][COL_GH_WEEKLY] !== '') {
+        weeklyTrend.push(toPercent(monthData[sr][COL_GH_WEEKLY]));
       } else {
         weeklyTrend.push(0);
       }
     }
     const last4Weeks = weeklyTrend.slice(Math.max(0, currentWeekIdx - 3), currentWeekIdx + 1);
-    const bestWeek   = weeklyTrend.length > 0 ? Math.max(...weeklyTrend.filter(w => w > 0)) : 0;
+    const positive   = weeklyTrend.filter(w => w > 0);
+    const bestWeek   = positive.length > 0 ? Math.max(...positive) : 0;
 
     // ── 6. SMART SIGNAL ──────────────────────────────────────
     const completedWeeks = weeklyTrend.slice(0, currentWeekIdx);
@@ -185,157 +224,123 @@ module.exports = async (req, res) => {
     for (let i = Math.max(0, currentWeekIdx - 1); i <= currentWeekIdx; i++)
       for (let d = 0; d < 7; d++) prev2WeeksRows.push(weekStartRows[i] + d);
 
-    const totalDays2 = prev2WeeksRows.filter(r => {
-      if (!monthData[r] || !monthData[r][1]) return false;
-      const d = new Date(monthData[r][1]); d.setHours(0,0,0,0);
-      return d <= today;
-    }).length;
+    const isPastRow = r => {
+      const dt = monthData[r] ? serialToDate(monthData[r][1]) : null;
+      return dt !== null && dt <= today;
+    };
+
+    const totalDays2 = prev2WeeksRows.filter(isPastRow).length;
 
     let habitsOnTrack = 0;
-activeGood.forEach(h => {
-  let count = 0;
-  prev2WeeksRows.forEach(r => {
-    if (monthData[r] && monthData[r][h.colIndex] === 'TRUE') count++;
-  });
-  if (totalDays2 > 0 && count / totalDays2 >= 0.7) habitsOnTrack++;
-});
+    activeGood.forEach(h => {
+      let count = 0;
+      prev2WeeksRows.forEach(r => {
+        if (monthData[r] && isChecked(monthData[r][h.colIndex])) count++;
+      });
+      if (totalDays2 > 0 && count / totalDays2 >= 0.7) habitsOnTrack++;
+    });
 
-const olderWeeksRows = [];
-for (let i = Math.max(0, currentWeekIdx - 3); i < Math.max(0, currentWeekIdx - 1); i++)
-  for (let d = 0; d < 7; d++) olderWeeksRows.push(weekStartRows[i] + d);
+    const olderWeeksRows = [];
+    for (let i = Math.max(0, currentWeekIdx - 3); i < Math.max(0, currentWeekIdx - 1); i++)
+      for (let d = 0; d < 7; d++) olderWeeksRows.push(weekStartRows[i] + d);
 
-const totalOlderDays = olderWeeksRows.filter(r => {
-  if (!monthData[r] || !monthData[r][1]) return false;
-  const d = new Date(monthData[r][1]); d.setHours(0,0,0,0);
-  return d <= today;
-}).length;
+    const totalOlderDays = olderWeeksRows.filter(isPastRow).length;
 
-let prevHabitsOnTrack = 0;
-activeGood.forEach(h => {
-  let count = 0;
-  olderWeeksRows.forEach(r => {
-    if (monthData[r] && monthData[r][h.colIndex] === 'TRUE') count++;
-  });
-  if (totalOlderDays > 0 && count / totalOlderDays >= 0.7) prevHabitsOnTrack++;
-});
-
-    const prev2Start = Math.max(0, currentWeekIdx - 1);
-    const prev2Rows  = [];
-    for (let i = prev2Start; i <= currentWeekIdx; i++)
-      for (let d = 0; d < 7; d++) prev2Rows.push(weekStartRows[i] + d);
-
-    const older2Rows = [];
-    for (let i = Math.max(0, currentWeekIdx - 3); i < prev2Start; i++)
-      for (let d = 0; d < 7; d++) older2Rows.push(weekStartRows[i] + d);
+    let prevHabitsOnTrack = 0;
+    activeGood.forEach(h => {
+      let count = 0;
+      olderWeeksRows.forEach(r => {
+        if (monthData[r] && isChecked(monthData[r][h.colIndex])) count++;
+      });
+      if (totalOlderDays > 0 && count / totalOlderDays >= 0.7) prevHabitsOnTrack++;
+    });
 
     let mostImproved    = null;
     let bestImprovement = -999;
     activeGood.forEach(h => {
       let recentCount = 0, olderCount = 0;
-      prev2Rows.forEach(r  => { if (monthData[r] && monthData[r][h.colIndex] === 'TRUE') recentCount++; });
-      older2Rows.forEach(r => { if (monthData[r] && monthData[r][h.colIndex] === 'TRUE') olderCount++;  });
-      const recentPct   = prev2Rows.length  > 0 ? recentCount / prev2Rows.length  : 0;
-      const olderPct    = older2Rows.length > 0 ? olderCount  / older2Rows.length : 0;
+      prev2WeeksRows.forEach(r  => { if (monthData[r] && isChecked(monthData[r][h.colIndex])) recentCount++; });
+      olderWeeksRows.forEach(r => { if (monthData[r] && isChecked(monthData[r][h.colIndex])) olderCount++;  });
+      const recentPct   = prev2WeeksRows.length  > 0 ? recentCount / prev2WeeksRows.length  : 0;
+      const olderPct    = olderWeeksRows.length > 0 ? olderCount  / olderWeeksRows.length : 0;
       const improvement = recentPct - olderPct;
       if (improvement > bestImprovement) { bestImprovement = improvement; mostImproved = h.name; }
     });
 
-    // ── 8. STREAK / WEAKEST / SIGNAL FROM SHEET ─────────────
-    // ── 8. STREAK CALCULATION + WEAKEST / SIGNAL FROM SHEET ──
-const todayNorm = new Date(today);
-todayNorm.setHours(0, 0, 0, 0);
+    // ── 8. STREAK (past days only, today never counts) ───────
+    const allDayRows = [];
+    for (let i = weekStartRows.length - 1; i >= 0; i--) {
+      for (let d = 6; d >= 0; d--) {
+        const r = weekStartRows[i] + d;
+        const rowDate = monthData[r] ? serialToDate(monthData[r][1]) : null;
+        if (!rowDate || rowDate > today) continue;
+        allDayRows.push({ r, rowDate });
+      }
+    }
 
-// Build flat list of all days newest first
-const allDayRows = [];
-for (let i = weekStartRows.length - 1; i >= 0; i--) {
-  for (let d = 6; d >= 0; d--) {
-    const r = weekStartRows[i] + d;
-    if (!monthData[r] || !monthData[r][1]) continue;
-    const rawDate = monthData[r][1];
-    const parts = new Date(rawDate);
-    const rowDate = new Date(parts.getUTCFullYear(), parts.getUTCMonth(), parts.getUTCDate());
-    rowDate.setHours(0, 0, 0, 0);
-    if (rowDate > todayNorm) continue;
-    allDayRows.push({ r, rowDate });
-  }
-}
+    let streak = 0;
+    for (let i = 0; i < allDayRows.length; i++) {
+      const { r, rowDate } = allDayRows[i];
+      if (rowDate.getTime() === today.getTime()) continue;
 
-// Count consecutive days where both bad + good habits hit 66%+
-// Count consecutive past days only — today never counts
-let streak = 0;
-for (let i = 0; i < allDayRows.length; i++) {
-  const { r, rowDate } = allDayRows[i];
+      let goodDone = 0;
+      activeGood.forEach(h => {
+        if (monthData[r] && isChecked(monthData[r][h.colIndex])) goodDone++;
+      });
+      const goodPct = activeGood.length > 0 ? goodDone / activeGood.length : 1;
 
-  // Skip today entirely
-  if (rowDate.getTime() === todayNorm.getTime()) continue;
+      if (goodPct >= 0.66) streak++;
+      else break;
+    }
 
-  let goodDone = 0;
-  activeGood.forEach(h => {
-    if (monthData[r] && monthData[r][h.colIndex] === 'TRUE') goodDone++;
-  });
-  const goodPct = activeGood.length > 0 ? goodDone / activeGood.length : 1;
+    const weakest   = monthData[weekRow] && monthData[weekRow][COL_WEAKEST]
+      ? String(monthData[weekRow][COL_WEAKEST]).trim() : 'None';
+    const signalMsg = monthData[weekRow] && monthData[weekRow][COL_SIGNAL]
+      ? String(monthData[weekRow][COL_SIGNAL]).trim() : 'Keep going!';
 
-  if (goodPct >= 0.66) {
-    streak++;
-  } else {
-    break;
-  }
-}
-
-const weakest   = monthData[weekRow] && monthData[weekRow][18] ? String(monthData[weekRow][18]).trim() : 'None';
-const signalMsg = monthData[weekRow] && monthData[weekRow][19] ? String(monthData[weekRow][19]).trim() : 'Keep going!';
-
-    // ── 9. FOCUS HABITS ──────────────────────────────────────
-    const goodFocus = focusData[1] && focusData[1][0] ? focusData[1][0] : 'Not set';
-    const badFocus  = focusData[2] && focusData[2][0] ? focusData[2][0] : 'Not set';
-    const goodCount = 0;
-    const badCount  = 0;
-
-    // ── 10. DAYS ELAPSED + TOTAL TRACKABLE ──────────────────
+    // ── 9. DAYS ELAPSED + TOTAL TRACKABLE ───────────────────
     const firstOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
     const daysElapsed  = Math.floor((today - firstOfMonth) / 86400000) + 1;
 
     let totalDays = 0;
     for (let i = 0; i < weekStartRows.length; i++) {
-      const r = weekStartRows[i];
-      if (monthData[r] && monthData[r][1]) {
-        const dv = new Date(monthData[r][1]);
-        dv.setHours(0, 0, 0, 0);
-        if (dv.getFullYear() >= 2026 && dv <= today) {
-          for (let dd = 0; dd < 7; dd++) {
-            const cd = new Date(dv);
-            cd.setDate(cd.getDate() + dd);
-            if (cd <= today) totalDays++;
-          }
+      const dv = monthData[weekStartRows[i]] ? serialToDate(monthData[weekStartRows[i]][1]) : null;
+      if (dv && dv.getFullYear() >= 2026 && dv <= today) {
+        for (let dd = 0; dd < 7; dd++) {
+          const cd = new Date(dv);
+          cd.setDate(cd.getDate() + dd);
+          if (cd <= today) totalDays++;
         }
       }
     }
 
-    // ── 11. ROW 46 STATS ─────────────────────────────────────
+    // ── 10. ROW 46 STATS (monthly counts per habit) ─────────
     const row46 = monthData[45] || [];
+    const countOf = h => {
+      const v = row46[h.colIndex];
+      const n = typeof v === 'number' ? v : parseInt(v);
+      return isNaN(n) ? 0 : n;
+    };
 
-    const goodHabitStats = activeGood.map(h => {
-      const count = row46[h.colIndex] ? parseInt(row46[h.colIndex]) || 0 : 0;
-      return { name: h.name, percent: totalDays > 0 ? Math.round((count / totalDays) * 100) : 0 };
-    });
-
-    const badHabitStats = activeBad.map(h => {
-      const count = row46[h.colIndex] ? parseInt(row46[h.colIndex]) || 0 : 0;
-      return { name: h.name, percent: totalDays > 0 ? Math.round((count / totalDays) * 100) : 0 };
-    });
+    const goodHabitStats = activeGood.map(h => ({
+      name: h.name,
+      percent: totalDays > 0 ? Math.round((countOf(h) / totalDays) * 100) : 0
+    }));
+    const badHabitStats = activeBad.map(h => ({
+      name: h.name,
+      percent: totalDays > 0 ? Math.round((countOf(h) / totalDays) * 100) : 0
+    }));
 
     const sortedBad = badHabitStats.slice().sort((a, b) => a.percent - b.percent);
     const worst = sortedBad.length > 0 ? sortedBad[0] : null;
     const best  = sortedBad.length > 0 ? sortedBad[sortedBad.length - 1] : null;
 
-    // ── 12. CONQUERED + GHOST RELAPSE CHECK ─────────────────
+    // ── 11. CONQUERED + GHOST RELAPSE CHECK ─────────────────
     const graveyard = [];
 
     conqueredBad.forEach(h => {
-      const count = row46[h.colIndex] ? parseInt(row46[h.colIndex]) || 0 : 0;
-      const pct   = totalDays > 0 ? Math.round((count / totalDays) * 100) : 0;
+      const pct = totalDays > 0 ? Math.round((countOf(h) / totalDays) * 100) : 0;
 
-      // Check for relapses after conquest date (note format: "conquered:YYYY-MM-DD")
       let relapseCount = 0;
       if (h.note && h.note.includes('conquered:')) {
         const conquestDate = new Date(h.note.replace('conquered:', '').trim());
@@ -343,53 +348,44 @@ const signalMsg = monthData[weekRow] && monthData[weekRow][19] ? String(monthDat
         for (let i = 0; i < weekStartRows.length; i++) {
           for (let d = 0; d < 7; d++) {
             const r = weekStartRows[i] + d;
-            if (!monthData[r] || !monthData[r][1]) continue;
-            const rowDate = new Date(monthData[r][1]);
-            rowDate.setHours(0, 0, 0, 0);
-            if (rowDate > conquestDate && monthData[r][h.colIndex] === 'TRUE') relapseCount++;
+            const rowDate = monthData[r] ? serialToDate(monthData[r][1]) : null;
+            if (!rowDate) continue;
+            if (rowDate > conquestDate && isChecked(monthData[r][h.colIndex])) relapseCount++;
           }
         }
       }
 
       graveyard.push({
-        name:         h.name,
-        percent:      pct,
+        name: h.name,
+        percent: pct,
         relapseCount,
-        warning:      relapseCount > 0
+        warning: relapseCount > 0
           ? `⚠ Slipped ${relapseCount} time${relapseCount > 1 ? 's' : ''} since conquest`
           : null
       });
     });
 
-    // Also catch active habits that hit 90%+ this month
     activeBad.forEach(h => {
-      const count = row46[h.colIndex] ? parseInt(row46[h.colIndex]) || 0 : 0;
-      const pct   = totalDays > 0 ? Math.round((count / totalDays) * 100) : 0;
+      const pct = totalDays > 0 ? Math.round((countOf(h) / totalDays) * 100) : 0;
       if (pct >= 90) graveyard.push({ name: h.name, percent: pct, relapseCount: 0, warning: null });
     });
 
-    // ── 13. NEXT TO FALL ─────────────────────────────────────
+    // ── 12. NEXT TO FALL ─────────────────────────────────────
     let nextToFall = null, nextToFallDays = 0;
     activeBad.forEach(h => {
-      const count = row46[h.colIndex] ? parseInt(row46[h.colIndex]) || 0 : 0;
-      if (count > nextToFallDays && count < 30) { nextToFallDays = count; nextToFall = h.name; }
+      const c = countOf(h);
+      if (c > nextToFallDays && c < 30) { nextToFallDays = c; nextToFall = h.name; }
     });
     const daysToKill = 30 - nextToFallDays;
 
-    // ── 14. WEEK START DATE ──────────────────────────────────
-    const weekStartDate = monthData[weekRow] && monthData[weekRow][1]
-      ? new Date(monthData[weekRow][1]).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+    // ── 13. WEEK START + STREAK WRITE ────────────────────────
+    const weekStartDateObj = monthData[weekRow] ? serialToDate(monthData[weekRow][1]) : null;
+    const weekStartDate = weekStartDateObj
+      ? weekStartDateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
       : 'N/A';
 
-   // ── 15. RESPOND ──────────────────────────────────────────
-    // Write streak to Dashboard sheet
     try {
-      const writeAuth = new google.auth.GoogleAuth({
-        credentials: creds,
-        scopes: ['https://www.googleapis.com/auth/spreadsheets']
-      });
-      const writeSheets = google.sheets({ version: 'v4', auth: writeAuth });
-      await writeSheets.spreadsheets.values.update({
+      await sheets.spreadsheets.values.update({
         spreadsheetId: sheetId,
         range: "'⚡ Dashboard'!C7",
         valueInputOption: 'RAW',
@@ -410,8 +406,8 @@ const signalMsg = monthData[weekRow] && monthData[weekRow][19] ? String(monthDat
       sheetName:    monthName,
       goodFocus,
       badFocus,
-      goodCount,
-      badCount,
+      goodCount:    0,
+      badCount:     0,
       daysElapsed,
       goodHabitStats,
       badHabitStats,
@@ -434,15 +430,3 @@ const signalMsg = monthData[weekRow] && monthData[weekRow][19] ? String(monthDat
     res.status(500).json({ error: err.message });
   }
 };
-
-// ── HELPER: 0-based column index → sheet letter (A, B ... Z, AA, AB ...) ────
-function colIndexToLetter(index) {
-  let letter = '';
-  let n = index + 1;
-  while (n > 0) {
-    const remainder = (n - 1) % 26;
-    letter = String.fromCharCode(65 + remainder) + letter;
-    n = Math.floor((n - 1) / 26);
-  }
-  return letter;
-}
