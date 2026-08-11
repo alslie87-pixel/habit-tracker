@@ -1,3 +1,19 @@
+const { google } = require('googleapis');
+
+// v28: the coaching instruction is user-editable in
+// Control Panel B26 ("AI COACHING PROMPT — Used by the web app").
+// Falls back to a generic default if the cell is empty.
+
+const PROMPT_CELL = "'⚙️ Control Panel'!B26";
+
+const DEFAULT_PROMPT =
+  'Give me a coaching note: ' +
+  '1. One honest sentence about my week. ' +
+  '2. One specific thing to fix based on my weakest habit. ' +
+  '3. One thing to protect that is already working. ' +
+  '4. One sentence connecting my habits to my bigger goal. ' +
+  'Keep it under 100 words. Be direct, not cheesy.';
+
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   if (req.method === 'OPTIONS') return res.status(200).end();
@@ -5,16 +21,34 @@ module.exports = async (req, res) => {
   try {
     const { weeklyPercent, streak, weakestHabit } = req.body;
 
-    const prompt = "I have these habit tracker stats this week: " +
-      "Weekly completion: " + weeklyPercent + "%. " +
-      "Current streak: " + streak + " days. " +
-      "Weakest habit: " + weakestHabit + ". " +
-      "Give me a coaching note following this format: " +
-      "1. One honest sentence about my week. " +
-      "2. One specific thing to fix based on my weakest habit. " +
-      "3. One thing to protect that is already working. " +
-      "4. One sentence connecting my habits to my goal of building an AI consulting firm. " +
-      "Keep it under 100 words. Be direct, not cheesy. Use only plain ASCII characters, no special unicode.";
+    // Read the user's own coaching prompt from the sheet
+    let instruction = DEFAULT_PROMPT;
+    try {
+      const creds = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT);
+      const auth = new google.auth.GoogleAuth({
+        credentials: creds,
+        scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly']
+      });
+      const sheets = google.sheets({ version: 'v4', auth });
+      const cellRes = await sheets.spreadsheets.values.get({
+        spreadsheetId: process.env.GOOGLE_SHEET_ID,
+        range: PROMPT_CELL
+      });
+      const cellVal = cellRes.data.values && cellRes.data.values[0] && cellRes.data.values[0][0];
+      if (cellVal && String(cellVal).trim().length > 20) {
+        instruction = String(cellVal).trim();
+      }
+    } catch (e) {
+      console.error('Prompt read failed, using default:', e.message);
+    }
+
+    const prompt =
+      'I have these habit tracker stats this week: ' +
+      'Weekly completion: ' + weeklyPercent + '%. ' +
+      'Current streak: ' + streak + ' days. ' +
+      'Weakest habit: ' + weakestHabit + '. ' +
+      instruction + ' ' +
+      'Use only plain ASCII characters, no special unicode.';
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -30,7 +64,7 @@ module.exports = async (req, res) => {
     });
 
     const data = await response.json();
-    
+
     if (!data.choices || !data.choices[0]) {
       return res.status(500).json({ error: 'No response from AI' });
     }

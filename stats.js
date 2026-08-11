@@ -157,8 +157,9 @@
       m.days.map(d => `<td style="background:${heatColor(d)};color:#ddd">${d===null?'–':d}</td>`).join('') + '</tr>'
     ).join('');
 
+    const yearColor = p => p >= 80 ? '#639922' : p >= 55 ? '#3B6D11' : p >= 30 ? '#2B4A12' : p > 0 ? '#1F2E14' : 'var(--bg-card-inner)';
     const yearCells = S.daily.slice(-186).map(d =>
-      `<i style="background:${heatColor(Math.round(d.p * 100))}" title="${d.t}"></i>`).join('');
+      `<i style="background:${yearColor(Math.round(d.p * 100))}" title="${d.t}"></i>`).join('');
 
     const lb = S.leaderboard.map((x, i) => {
       const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '·';

@@ -1,4 +1,8 @@
 const { google } = require('googleapis');
+
+// v28 sheet: Focus habits live in Control Panel C20 (good/Building)
+// and C21 (bad/Eliminating).
+
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   if (req.method === 'OPTIONS') return res.status(200).end();
@@ -12,8 +16,8 @@ module.exports = async (req, res) => {
     const sheets = google.sheets({ version: 'v4', auth });
     const sheetId = process.env.GOOGLE_SHEET_ID;
     const cell = type === 'good'
-      ? "'⚙️ Control Panel'!B24"
-      : "'⚙️ Control Panel'!B25";
+      ? "'⚙️ Control Panel'!C20"
+      : "'⚙️ Control Panel'!C21";
     await sheets.spreadsheets.values.update({
       spreadsheetId: sheetId,
       range: cell,
