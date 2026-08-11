@@ -15,6 +15,9 @@
     transform:translateX(100%);transition:transform .28s ease;overflow-y:auto;
     padding:16px 14px 40px 14px;-webkit-overflow-scrolling:touch}
   #stx-panel.open{transform:translateX(0)}
+  .stx-wrap{max-width:560px;margin:0 auto}
+  .stx-svg{width:100%;height:110px;display:block}
+  .stx-ring{display:block;margin:0 auto;width:58px;height:58px}
   .stx-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
   .stx-back{color:var(--text-secondary);font-size:12px;cursor:pointer;padding:6px}
   .stx-title{font-weight:700;font-size:15px}
@@ -38,6 +41,7 @@
   .stx-mx td{padding:3px 1px;border-radius:2px}
   .stx-mx td:first-child{text-align:left;font-size:10px}
   .stx-year{display:grid;grid-template-columns:repeat(31,1fr);gap:2px}
+  .stx-year i{min-height:6px}
   .stx-year i{aspect-ratio:1;border-radius:1px;background:var(--bg-card-inner)}
   .stx-cta{background:#0F1F14;border:1px solid #27500A;border-radius:10px;padding:8px;
     text-align:center;color:#97C459;font-size:10px;margin-top:4px}
@@ -163,6 +167,7 @@
     }).join('');
 
     panel.innerHTML = `
+    <div class="stx-wrap">
     <div class="stx-head">
       <span class="stx-back">← back</span>
       <span class="stx-title">📊 Progress</span>
@@ -175,7 +180,7 @@
         <div class="stx-h">Momentum — month by month</div>
         ${lastDelta !== null ? `<div style="font-size:9px;color:${lastDelta >= 0 ? '#97C459' : '#FAC775'}">${lastDelta >= 0 ? '↗ +' : '↘ '}${lastDelta}%</div>` : ''}
       </div>
-      ${pts.length ? `<svg viewBox="0 0 ${w} ${h}" style="width:100%">
+      ${pts.length > 1 ? `<svg viewBox="0 0 ${w} ${h}" class="stx-svg" preserveAspectRatio="none">
         <defs><linearGradient id="stxg" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" stop-color="#7F77DD" stop-opacity="0.45"/>
           <stop offset="1" stop-color="#7F77DD" stop-opacity="0"/></linearGradient></defs>
@@ -185,15 +190,15 @@
       </svg>
       <div style="display:flex;justify-content:space-between" class="stx-sub">
         <span>${mVals[0] ? mVals[0].name : ''}</span><span style="color:#97C459">${mVals.length ? mVals[mVals.length-1].name : ''}</span>
-      </div>` : '<div class="stx-sub">Your first month is being written right now.</div>'}
+      </div>` : mVals.length === 1 ? `<div style="text-align:center;padding:8px 0"><b style="font-size:26px;color:#97C459">${Math.round(mVals[0].good*100)}%</b><div class="stx-sub">${mVals[0].name} — your first month on the board.<br>The line starts next month.</div></div>` : '<div class="stx-sub">Your first month is being written right now.</div>'}
     </div>
 
     <div class="stx-card"><div class="stx-h">Habit momentum — vs last month</div>${mom}</div>
 
     <div class="stx-grid2">
       <div class="stx-card" style="margin:0;text-align:center">
-        <svg viewBox="0 0 60 60" style="width:58px">
-          <circle cx="30" cy="30" r="24" fill="none" stroke="var(--bg-card-inner)" stroke-width="7"/>
+        <svg viewBox="0 0 60 60" class="stx-ring">
+          <circle cx="30" cy="30" r="24" fill="none" stroke="var(--border-default)" stroke-width="7"/>
           <circle cx="30" cy="30" r="24" fill="none" stroke="#97C459" stroke-width="7"
             stroke-dasharray="${(S.consistency / 100 * 151).toFixed(0)} 151" stroke-linecap="round" transform="rotate(-90 30 30)"/>
           <text x="30" y="35" text-anchor="middle" fill="#97C459" font-size="14" font-weight="700">${S.consistency}%</text>
@@ -221,7 +226,7 @@
     <div class="stx-card">
       <div class="stx-h">Your year</div>
       <div class="stx-year">${yearCells}</div>
-      <div class="stx-sub" style="margin-top:4px">one square per day — greener = better day</div>
+      <div class="stx-sub" style="margin-top:4px">one square per day — the greener, the stronger</div>
     </div>
 
     <div class="stx-card"><div class="stx-h">Habit leaderboard — this month</div>${lb}</div>
@@ -238,7 +243,8 @@
       <div class="stx-tile"><b style="color:#97C459">${pc(S.bestWeekEver)}</b><span>best week ever</span></div>
       <div class="stx-tile"><b style="color:#AFA9EC">${S.bestMonthEver ? S.bestMonthEver.name + ' · ' + S.bestMonthEver.pct + '%' : '–'}</b><span>best month ever</span></div>
     </div>
-    <div class="stx-cta">Full honest breakdown → 📈 Insights in your sheet</div>`;
+    <div class="stx-cta">Full honest breakdown → 📈 Insights in your sheet</div>
+    </div>`;
     bindBack();
   }
   function bindBack() { const b = $('.stx-back', panel); if (b) b.onclick = closePanel; }
