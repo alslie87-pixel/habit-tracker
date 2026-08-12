@@ -70,6 +70,7 @@
   .obx-btn{display:block;width:100%;background:#7F77DD;border:none;border-radius:12px;
     padding:13px;color:#fff;font-weight:600;font-size:14px;cursor:pointer;margin-top:16px}
   .obx-btn:disabled{opacity:.4}
+  .obx-add{border:1px dashed var(--border-default);border-radius:10px;padding:8px;text-align:center;color:var(--text-secondary);font-size:11px;cursor:pointer;margin-bottom:5px}
   .obx-foot{text-align:center;color:var(--text-secondary);font-size:9px;margin-top:10px}`;
   const st = document.createElement('style');
   st.textContent = css;
@@ -284,9 +285,11 @@
       <div class="obx-t" style="text-align:left">Your habits</div>
       <div class="obx-s" style="text-align:left">We filled in six classics — make them yours, or keep them.</div>
       <div class="obx-lbl" style="color:#F09595">▼ AVOID</div>
-      ${obHabits.bad.map((h, i) => `<div class="obx-item"><input data-t="bad" data-i="${i}" value="${h}"></div>`).join('')}
+      ${obHabits.bad.map((h, i) => `<div class="obx-item"><input data-t="bad" data-i="${i}" value="${h}" placeholder="Enter habit here"></div>`).join('')}
+      ${obHabits.bad.length < 7 ? '<div class="obx-add" data-add="bad">+ add habit</div>' : ''}
       <div class="obx-lbl" style="color:#97C459">▲ BUILD</div>
-      ${obHabits.good.map((h, i) => `<div class="obx-item"><input data-t="good" data-i="${i}" value="${h}"></div>`).join('')}
+      ${obHabits.good.map((h, i) => `<div class="obx-item"><input data-t="good" data-i="${i}" value="${h}" placeholder="Enter habit here"></div>`).join('')}
+      ${obHabits.good.length < 7 ? '<div class="obx-add" data-add="good">+ add habit</div>' : ''}
       <button class="obx-btn" id="obx-next">Keep these ✓</button>
       <div class="obx-foot">min 3 + 3 · tap a name to edit it</div></div>`;
     if (step === 2) ob.innerHTML = `<div class="obx-wrap">
@@ -294,9 +297,9 @@
       <div class="obx-t" style="text-align:left">Pick your focus</div>
       <div class="obx-s" style="text-align:left">One to build, one to eliminate — 30 days of extra attention.</div>
       <div class="obx-lbl" style="color:#97C459">▲ BUILDING</div>
-      ${obHabits.good.map(h => `<div class="obx-item ${focus.good === h ? 'sel' : ''}" data-fg="${h}"><span>${focus.good === h ? '●' : '○'} ${h}</span></div>`).join('')}
+      ${obHabits.good.filter(Boolean).map(h => `<div class="obx-item ${focus.good === h ? 'sel' : ''}" data-fg="${h}"><span>${focus.good === h ? '●' : '○'} ${h}</span></div>`).join('')}
       <div class="obx-lbl" style="color:#F09595">▼ ELIMINATING</div>
-      ${obHabits.bad.map(h => `<div class="obx-item ${focus.bad === h ? 'selbad' : ''}" data-fb="${h}"><span>${focus.bad === h ? '●' : '○'} ${h}</span></div>`).join('')}
+      ${obHabits.bad.filter(Boolean).map(h => `<div class="obx-item ${focus.bad === h ? 'selbad' : ''}" data-fb="${h}"><span>${focus.bad === h ? '●' : '○'} ${h}</span></div>`).join('')}
       <button class="obx-btn" id="obx-next" ${focus.good && focus.bad ? '' : 'disabled'}>Continue →</button></div>`;
     if (step === 3) ob.innerHTML = `<div class="obx-wrap">
       <div class="obx-dots">${dots}</div>
@@ -309,6 +312,12 @@
     ob.querySelectorAll('input[data-t]').forEach(inp => {
       inp.onchange = () => { obHabits[inp.dataset.t][+inp.dataset.i] = inp.value.trim(); };
     });
+    ob.querySelectorAll('[data-add]').forEach(el => el.onclick = () => {
+      obHabits[el.dataset.add].push('');
+      obRender();
+      const inputs = ob.querySelectorAll(`input[data-t="${el.dataset.add}"]`);
+      if (inputs.length) inputs[inputs.length - 1].focus();
+    });
     ob.querySelectorAll('[data-fg]').forEach(el => el.onclick = () => { focus.good = el.dataset.fg; obRender(); });
     ob.querySelectorAll('[data-fb]').forEach(el => el.onclick = () => { focus.bad = el.dataset.fb; obRender(); });
     const next = $('#obx-next', ob);
@@ -317,12 +326,15 @@
 
   async function obNext() {
     if (step === 1) {
-      obHabits.bad = obHabits.bad.map(s => s.trim()).filter(Boolean);
-      obHabits.good = obHabits.good.map(s => s.trim()).filter(Boolean);
-      if (obHabits.bad.length < 3 || obHabits.good.length < 3) {
+      obHabits.bad = obHabits.bad.map(s => s.trim());
+      obHabits.good = obHabits.good.map(s => s.trim());
+      const nBad = obHabits.bad.filter(Boolean).length;
+      const nGood = obHabits.good.filter(Boolean).length;
+      if (nBad < 3 || nGood < 3) {
         alert('You need at least 3 good and 3 bad habits.'); return;
       }
-      focus.good = obHabits.good[0]; focus.bad = obHabits.bad[0];
+      focus.good = obHabits.good.filter(Boolean)[0];
+      focus.bad = obHabits.bad.filter(Boolean)[0];
     }
     if (step === 3) { await obFinish(); return; }
     step++; obRender();
@@ -332,16 +344,22 @@
     const btn = $('#obx-next', ob);
     btn.disabled = true; btn.textContent = 'Setting up…';
     try {
-      // rename changed habits via existing endpoint
+      // sync habit list: rename / add / remove via existing endpoint
       for (const type of ['bad', 'good']) {
-        for (let i = 0; i < obHabits[type].length; i++) {
-          const oldName = obOrig[type][i];
-          const newName = obHabits[type][i];
+        const n = Math.max(obHabits[type].length, obOrig[type].length);
+        for (let i = 0; i < n; i++) {
+          const oldName = (obOrig[type][i] || '').trim();
+          const newName = (obHabits[type][i] || '').trim();
+          const call = body => fetch(API + '/update-config', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+          });
           if (oldName && newName && oldName !== newName) {
-            await fetch(API + '/update-config', {
-              method: 'POST', headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ action: 'replace', type, name: oldName, newName })
-            });
+            await call({ action: 'replace', type, name: oldName, newName });
+          } else if (!oldName && newName) {
+            await call({ action: 'add', type, newName });
+          } else if (oldName && !newName) {
+            await call({ action: 'remove', type, name: oldName });
           }
         }
       }
