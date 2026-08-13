@@ -1,50 +1,60 @@
 /* ============================================================
-   HABIT TRACKER — STATS PAGE (right-swipe) + ONBOARDING
+   HABIT TRACKER — PROGRESS PAGE (right-swipe) + ONBOARDING
    Self-contained module. Loaded via <script src="stats.js" defer>
-   right before </body>. Uses the app's CSS variables so it
-   follows light/dark theme automatically.
+   right before </body>.
+
+   The Progress page is a faithful port of the design handoff
+   (design_handoff_habit_stats): nine stacked blocks, committed
+   dark palette, Manrope, every chart hand-drawn inline SVG with
+   no chart library. Geometry is responsive off a measured content
+   width (cw); numbers come from /api/get-stats (real log data).
    ============================================================ */
 (function () {
   'use strict';
   const API = '/api';
   const $ = (sel, el) => (el || document).querySelector(sel);
 
+  /* ---------- design tokens ---------- */
+  const F = 'Manrope,system-ui,-apple-system,sans-serif';
+  const GRN = '#97C459', GLD = '#FAC775', RED = '#F09595', LAV = '#AFA9EC', PUR = '#7F77DD';
+  // text ramp: primary → footer
+  const T0 = '#F4F3F9', T1 = '#E8E7F0', T2 = '#C9C7D6', T3 = '#8A879B',
+        T4 = '#6E6B80', T5 = '#5E5B70', T6 = '#4F4C60', T7 = '#3F3D4D';
+  const CARD = '#17171F', CARD_BD = 'rgba(255,255,255,0.055)', DIV = 'rgba(255,255,255,0.045)';
+
+  const WD = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  const WDL = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+  const YRM = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'];
+  const MONALL = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const WORDS = ['Zero', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven',
+                 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve'];
+  const ORD = [0, 1, 2, 3, 4, 5, 6]; // Monday-start week order
+
+  const esc = s => String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  const mean = a => a.length ? a.reduce((s, x) => s + x, 0) / a.length : 0;
+  const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+
+  /* ---------- Manrope webfont (scoped to this module) ---------- */
+  const fl = document.createElement('link');
+  fl.rel = 'stylesheet';
+  fl.href = 'https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap';
+  document.head.appendChild(fl);
+
   /* ---------- styles ---------- */
   const css = `
-  #stx-panel{position:fixed;inset:0;background:var(--bg-page);z-index:80;
+  #stx-panel{position:fixed;inset:0;background:#08080C;z-index:80;
     transform:translateX(100%);transition:transform .28s ease;overflow-y:auto;
-    padding:16px 14px 40px 14px;-webkit-overflow-scrolling:touch}
+    padding:24px 16px 64px;-webkit-overflow-scrolling:touch;box-sizing:border-box}
   #stx-panel.open{transform:translateX(0)}
-  .stx-wrap{max-width:560px;margin:0 auto}
-  .stx-svg{width:100%;height:110px;display:block}
-  .stx-ring{display:block;margin:0 auto;width:58px;height:58px}
-  .stx-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
-  .stx-back{color:var(--text-secondary);font-size:12px;cursor:pointer;padding:6px}
-  .stx-title{font-weight:700;font-size:15px}
-  .stx-dots{text-align:center;font-size:9px;color:var(--text-secondary);margin-bottom:10px}
-  .stx-card{background:var(--bg-card);border:1px solid var(--border-default);
-    border-radius:14px;padding:12px;margin-bottom:10px}
-  .stx-h{font-size:11px;font-weight:600;color:#AFA9EC;margin-bottom:8px}
-  .stx-sub{font-size:9px;color:var(--text-secondary)}
-  .stx-note{font-size:10px;color:#97C459;margin-top:6px}
-  .stx-row{display:flex;justify-content:space-between;align-items:center;font-size:11px;padding:3px 0}
-  .stx-grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
-  .stx-grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px}
-  .stx-tile{background:var(--bg-card-inner);border-radius:10px;padding:8px;text-align:center}
-  .stx-tile b{font-size:15px;display:block}
-  .stx-tile span{font-size:8px;color:var(--text-secondary)}
-  .stx-bars{display:flex;gap:4px;align-items:flex-end;height:44px}
-  .stx-bars>div{flex:1;text-align:center}
-  .stx-bars i{display:block;border-radius:3px 3px 0 0;background:#3C3489}
-  .stx-bars em{font-style:normal;font-size:8px;color:var(--text-secondary)}
-  .stx-mx{width:100%;border-collapse:collapse;font-size:9px;text-align:center}
-  .stx-mx td{padding:3px 1px;border-radius:2px}
-  .stx-mx td:first-child{text-align:left;font-size:10px}
-  .stx-year{display:grid;grid-template-columns:repeat(31,1fr);gap:2px}
-  .stx-year i{min-height:6px}
-  .stx-year i{aspect-ratio:1;border-radius:1px;background:var(--bg-card-inner)}
-  .stx-cta{background:#0F1F14;border:1px solid #27500A;border-radius:10px;padding:8px;
-    text-align:center;color:#97C459;font-size:10px;margin-top:4px}
+  .hs-app{width:100%;max-width:560px;margin:0 auto;box-sizing:border-box;
+    background:#0D0D12;border:1px solid rgba(255,255,255,0.05);border-radius:22px;
+    box-shadow:0 40px 90px -40px rgba(0,0,0,0.9);color:${T1};font-family:${F};
+    -webkit-font-smoothing:antialiased}
+  .hs-app *{box-sizing:border-box}
+  .hs-cards{display:flex;flex-direction:column;gap:14px}
+  .hs-card{background:${CARD};border:1px solid ${CARD_BD};border-radius:16px;padding:18px}
+  @keyframes hsHalo{0%,100%{opacity:.5}50%{opacity:1}}
   #stx-fab{position:fixed;right:14px;bottom:14px;z-index:70;background:#7F77DD;color:#fff;
     border:none;border-radius:50%;width:44px;height:44px;font-size:18px;cursor:pointer;
     box-shadow:0 4px 14px rgba(0,0,0,.4), inset 0 1px 2px rgba(255,255,255,.25), inset 0 -2px 4px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center}
@@ -77,7 +87,8 @@
   document.head.appendChild(st);
 
   /* ---------- state ---------- */
-  let S = null; // stats payload
+  let S = null;                                   // stats payload
+  const V = { mi: 0, open: null, pd: null, sb: null, day: null, cw: 314 };
 
   const STX_P = 'M6 18V11 M12 18V6 M18 18V14';
   const stxIcon = (size, mainColor) => `<svg viewBox="0 0 24 24" width="${size}" height="${size}" style="display:block">` +
@@ -87,9 +98,33 @@
     `<path d="${STX_P}" stroke="${mainColor || '#100E24'}" stroke-width="2.9"/>` +
     `</g></svg>`;
 
-  /* ---------- stats panel ---------- */
+  /* ---------- geometry helpers (ported from the handoff) ---------- */
+  function smooth(pts) {
+    let d = 'M ' + pts[0].x.toFixed(1) + ' ' + pts[0].y.toFixed(1);
+    for (let i = 0; i < pts.length - 1; i++) {
+      const p0 = pts[i - 1] || pts[i], p1 = pts[i], p2 = pts[i + 1], p3 = pts[i + 2] || p2;
+      const k = 0.85;
+      const c1x = p1.x + (p2.x - p0.x) / 6 * k, c1y = p1.y + (p2.y - p0.y) / 6 * k;
+      const c2x = p2.x - (p3.x - p1.x) / 6 * k, c2y = p2.y - (p3.y - p1.y) / 6 * k;
+      d += ' C ' + c1x.toFixed(1) + ' ' + c1y.toFixed(1) + ', ' + c2x.toFixed(1) + ' ' +
+        c2y.toFixed(1) + ', ' + p2.x.toFixed(1) + ' ' + p2.y.toFixed(1);
+    }
+    return d;
+  }
+  const pol = (cx, cy, r, a) => { const t = a * Math.PI / 180; return { x: cx + r * Math.cos(t), y: cy + r * Math.sin(t) }; };
+  function arcPath(cx, cy, r, a0, a1) {
+    const s = pol(cx, cy, r, a0), e = pol(cx, cy, r, a1);
+    const la = Math.abs(a1 - a0) > 180 ? 1 : 0;
+    return 'M ' + s.x.toFixed(2) + ' ' + s.y.toFixed(2) + ' A ' + r + ' ' + r + ' 0 ' + la +
+      ' 1 ' + e.x.toFixed(2) + ' ' + e.y.toFixed(2);
+  }
+
+  /* ---------- panel + FAB ---------- */
   const panel = document.createElement('div');
   panel.id = 'stx-panel';
+  const app = document.createElement('div');
+  app.className = 'hs-app';
+  panel.appendChild(app);
   document.body.appendChild(panel);
 
   const fab = document.createElement('button');
@@ -99,19 +134,38 @@
   fab.onclick = openPanel;
   document.body.appendChild(fab);
 
-  function openPanel() {
-    render();
-    panel.classList.add('open');
-  }
+  function openPanel() { panel.classList.add('open'); render(); }
   function closePanel() { panel.classList.remove('open'); }
 
+  /* delegated interaction (installed once; survives innerHTML swaps) */
+  panel.addEventListener('click', onEvt);
+  panel.addEventListener('mouseover', onEvt);
+  function onEvt(e) {
+    const t = e.target.closest('[data-act]'); if (!t) return;
+    const act = t.dataset.act, i = t.dataset.i != null ? +t.dataset.i : null;
+    if (act === 'back') { if (e.type === 'click') closePanel(); return; }
+    if (act === 'open') { if (e.type !== 'click') return; V.open = V.open === i ? null : i; paint(); return; }
+    if (act === 'day') { updateYearNote(i); return; }   // light update, no full repaint
+    if (act === 'mi') V.mi = i;
+    else if (act === 'pd') V.pd = i;
+    else if (act === 'sb') V.sb = i;
+    else return;
+    paint();
+  }
+
+  /* recompute geometry on resize while open */
+  let rt;
+  window.addEventListener('resize', () => {
+    if (!panel.classList.contains('open') || !S) return;
+    clearTimeout(rt);
+    rt = setTimeout(() => { measureCW(); paint(); }, 120);
+  });
+
   /* swipe: left swipe opens (page slides in from the right), right swipe closes */
-  let tx = null, ty = null;
+  let tx = null, ty = null, txTarget = null;
   document.addEventListener('touchstart', e => {
-    tx = e.touches[0].clientX; ty = e.touches[0].clientY;
+    tx = e.touches[0].clientX; ty = e.touches[0].clientY; txTarget = e.target;
   }, { passive: true });
-  let txTarget = null;
-  document.addEventListener('touchstart', e => { txTarget = e.target; }, { passive: true });
   function inHorizontalScroller(el) {
     while (el && el !== document.body) {
       if (el.scrollWidth > el.clientWidth + 5) {
@@ -134,148 +188,382 @@
     tx = null;
   }, { passive: true });
 
-  const pc = v => v === null || v === undefined ? '–' : v + '%';
-  const heatColor = p => p === null ? 'var(--bg-card-inner)'
-    : p >= 80 ? '#639922' : p >= 60 ? '#3B6D11' : p >= 40 ? '#3a3a22'
-    : p >= 20 ? '#7a2a1a' : '#A32D2D';
-
-  function render() {
-    if (!S) { panel.innerHTML = '<div class="stx-head"><span class="stx-back">← back</span></div><div class="stx-sub" style="padding:20px;text-align:center">Loading stats…</div>'; bindBack(); load().then(render); return; }
-
-    const mVals = S.months.filter(m => m.good !== null && m.good > 0);
-    const w = 260, h = 64;
-    const pts = mVals.map((m, i) => {
-      const x = 10 + (mVals.length > 1 ? i * (w - 20) / (mVals.length - 1) : 0);
-      const y = h - 8 - (m.good * (h - 20));
-      return [x, y];
-    });
-    const poly = pts.map(p => p.join(',')).join(' ');
-    const area = poly ? poly + ` ${pts[pts.length-1][0]},${h} ${pts[0][0]},${h}` : '';
-    const lastDelta = mVals.length > 1
-      ? Math.round((mVals[mVals.length-1].good - mVals[mVals.length-2].good) * 100) : null;
-
-    const mom = S.momentum.map(m => {
-      let tag, col;
-      if (m.delta === null) { tag = '— new'; col = 'var(--text-secondary)'; }
-      else if (m.delta > 2) { tag = '▲ +' + m.delta + '%'; col = '#97C459'; }
-      else if (m.delta < -2) { tag = '▼ ' + m.delta + '%'; col = '#FAC775'; }
-      else { tag = '— steady'; col = 'var(--text-secondary)'; }
-      return `<div class="stx-row"><span>${m.name}</span><span style="color:${col}">${tag}</span></div>`;
-    }).join('');
-
-    const wdNames = ['M','T','W','T','F','S','S'];
-    const maxWd = Math.max(...S.weekday.map(v => v || 0), 1);
-    const wdBars = S.weekday.map((v, i) => {
-      const hh = v === null ? 4 : Math.max(4, Math.round(v / maxWd * 40));
-      const best = v !== null && v === maxWd;
-      return `<div><i style="height:${hh}px;${best ? 'background:#639922' : ''}"></i><em ${best ? 'style="color:#97C459"' : ''}>${wdNames[i]}</em></div>`;
-    }).join('');
-    const bestD = S.weekday.indexOf(Math.max(...S.weekday.map(v => v || -1)));
-    const worstD = S.weekday.indexOf(Math.min(...S.weekday.map(v => v === null ? 999 : v)));
-    const dayFull = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-
-    const mxRows = S.matrix.map(m =>
-      `<tr><td style="color:${m.type==='bad'?'#F09595':'#97C459'}">${m.name}</td>` +
-      m.days.map(d => `<td style="background:${heatColor(d)};color:#ddd">${d===null?'–':d}</td>`).join('') + '</tr>'
-    ).join('');
-
-    const yearColor = p => p >= 80 ? '#639922' : p >= 55 ? '#3B6D11' : p >= 30 ? '#2B4A12' : p > 0 ? '#1F2E14' : 'var(--bg-card-inner)';
-    const yearCells = S.daily.slice(-186).map(d =>
-      `<i style="background:${yearColor(Math.round(d.p * 100))}" title="${d.t}"></i>`).join('');
-
-    const lb = S.leaderboard.map((x, i) => {
-      const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '·';
-      const last = i === S.leaderboard.length - 1 && S.leaderboard.length > 3;
-      return `<div class="stx-row"><span>${medal} ${x.name}</span><span style="color:${last ? '#FAC775' : x.pct >= 60 ? '#97C459' : 'var(--text-secondary)'}">${x.pct}%${last ? ' · your next win' : ''}</span></div>`;
-    }).join('');
-
-    panel.innerHTML = `
-    <div class="stx-wrap">
-    <div class="stx-head">
-      <span class="stx-back">← back</span>
-      <span class="stx-title" style="display:inline-flex;align-items:center;gap:7px">${stxIcon(18, '#7F77DD')} Progress</span>
-      <span class="stx-sub">${new Date().getFullYear()}</span>
-    </div>
-    <div class="stx-dots">○ ●</div>
-
-    <div class="stx-card">
-      <div style="display:flex;justify-content:space-between">
-        <div class="stx-h">Momentum — month by month</div>
-        ${lastDelta !== null ? `<div style="font-size:9px;color:${lastDelta >= 0 ? '#97C459' : '#FAC775'}">${lastDelta >= 0 ? '↗ +' : '↘ '}${lastDelta}%</div>` : ''}
-      </div>
-      ${pts.length > 1 ? `<svg viewBox="0 0 ${w} ${h}" class="stx-svg" preserveAspectRatio="none">
-        <defs><linearGradient id="stxg" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stop-color="#7F77DD" stop-opacity="0.45"/>
-          <stop offset="1" stop-color="#7F77DD" stop-opacity="0"/></linearGradient></defs>
-        <polygon points="${area}" fill="url(#stxg)"/>
-        <polyline points="${poly}" fill="none" stroke="#AFA9EC" stroke-width="2.5"/>
-        <circle cx="${pts[pts.length-1][0]}" cy="${pts[pts.length-1][1]}" r="3.5" fill="#97C459"/>
-      </svg>
-      <div style="display:flex;justify-content:space-between" class="stx-sub">
-        <span>${mVals[0] ? mVals[0].name : ''}</span><span style="color:#97C459">${mVals.length ? mVals[mVals.length-1].name : ''}</span>
-      </div>` : mVals.length === 1 ? `<div style="text-align:center;padding:8px 0"><b style="font-size:26px;color:#97C459">${Math.round(mVals[0].good*100)}%</b><div class="stx-sub">${mVals[0].name} — your first month on the board.<br>The line starts next month.</div></div>` : '<div class="stx-sub">Your first month is being written right now.</div>'}
-    </div>
-
-    <div class="stx-card"><div class="stx-h">Habit momentum — vs last month</div>${mom}</div>
-
-    <div class="stx-grid2">
-      <div class="stx-card" style="margin:0;text-align:center">
-        <svg viewBox="0 0 60 60" class="stx-ring">
-          <circle cx="30" cy="30" r="24" fill="none" stroke="var(--border-default)" stroke-width="7"/>
-          <circle cx="30" cy="30" r="24" fill="none" stroke="#97C459" stroke-width="7"
-            stroke-dasharray="${(S.consistency / 100 * 151).toFixed(0)} 151" stroke-linecap="round" transform="rotate(-90 30 30)"/>
-          <text x="30" y="35" text-anchor="middle" fill="#97C459" font-size="14" font-weight="700">${S.consistency}%</text>
-        </svg>
-        <div class="stx-sub">Consistency<br>days over 66%</div>
-      </div>
-      <div class="stx-card" style="margin:0;text-align:center;display:flex;flex-direction:column;justify-content:center">
-        <b style="font-size:20px;color:${(S.weekendGap || 0) < 0 ? '#F09595' : '#97C459'}">${S.weekendGap === null ? '–' : (S.weekendGap > 0 ? '+' : '') + S.weekendGap + '%'}</b>
-        <div class="stx-sub">Weekend ${(S.weekendGap || 0) < 0 ? 'dip' : 'lift'}<br>vs weekdays</div>
-      </div>
-    </div>
-
-    <div class="stx-card">
-      <div class="stx-h">Power days</div>
-      <div class="stx-bars">${wdBars}</div>
-      ${bestD >= 0 ? `<div class="stx-note">Book your hardest habits on ${dayFull[bestD]}s.</div>` : ''}
-    </div>
-
-    <div class="stx-card">
-      <div class="stx-h">Where habits break — this month</div>
-      <table class="stx-mx"><tr><td></td>${wdNames.map(d => `<td class="stx-sub">${d}</td>`).join('')}</tr>${mxRows}</table>
-      ${worstD >= 0 ? `<div class="stx-note" style="color:#FAC775">Watch out for ${dayFull[worstD]}s — plan around them.</div>` : ''}
-    </div>
-
-    <div class="stx-card">
-      <div class="stx-h">Your year</div>
-      <div class="stx-year">${yearCells}</div>
-      <div class="stx-sub" style="margin-top:4px">one square per day — the greener, the stronger</div>
-    </div>
-
-    <div class="stx-card"><div class="stx-h">Habit leaderboard — this month</div>${lb}</div>
-
-    <div class="stx-sub" style="text-align:center;margin:6px 0">— all time —</div>
-    <div class="stx-grid4">
-      <div class="stx-tile"><b style="color:#97C459">${S.perfectDays}</b><span>perfect days</span></div>
-      <div class="stx-tile"><b style="color:#FAC775">${S.checksYTD}</b><span>wins YTD</span></div>
-      <div class="stx-tile"><b style="color:#97C459">${S.comebacks}</b><span>comebacks</span></div>
-      <div class="stx-tile"><b style="color:#AFA9EC">${pc(S.vsBest)}</b><span>of best month</span></div>
-    </div>
-    <div class="stx-grid4" style="grid-template-columns:repeat(3,1fr)">
-      <div class="stx-tile"><b style="color:#97C459">${pc(S.bestDayEver)}</b><span>best day ever</span></div>
-      <div class="stx-tile"><b style="color:#97C459">${pc(S.bestWeekEver)}</b><span>best week ever</span></div>
-      <div class="stx-tile"><b style="color:#AFA9EC">${S.bestMonthEver ? S.bestMonthEver.name + ' · ' + S.bestMonthEver.pct + '%' : '–'}</b><span>best month ever</span></div>
-    </div>
-    <div class="stx-cta">Full honest breakdown → 📈 Insights in your sheet</div>
-    </div>`;
-    bindBack();
+  /* ---------- responsive content width ----------
+     cw is the chart width *inside a card*, matching the handoff's
+     cw = pageW − 2·pagePad − (2 card paddings). We derive it from the
+     app column's real rendered width so SVG (width:100%, viewBox 0 0 cw H)
+     renders 1:1 with no distortion. */
+  function measureCW() {
+    let box = app.getBoundingClientRect().width;     // border-box, real width
+    if (!box || box < 10) box = Math.min((window.innerWidth || 390) - 32, 560); // fallback
+    const pad = box >= 480 ? 26 : 20;
+    app.style.padding = pad + 'px';
+    // subtract: app borders (2) + 2·pad + card borders (2) + 2·card padding (36)
+    V.cw = Math.max(180, Math.round(box - 40 - pad * 2));
+    V.wide = box >= 480;
   }
-  function bindBack() { const b = $('.stx-back', panel); if (b) b.onclick = closePanel; }
+
+  /* ---------- render ---------- */
+  function render() {
+    if (!S) {
+      app.style.padding = '20px';
+      app.innerHTML = `<div data-act="back" style="cursor:pointer;color:${T3};font:700 12px ${F};padding:6px">← Back</div>
+        <div style="text-align:center;color:${T3};font:500 13px ${F};padding:40px 0">Loading your progress…</div>`;
+      load().then(() => { if (panel.classList.contains('open')) render(); });
+      return;
+    }
+    V.mi = clamp(V.mi, 0, Math.max(0, S.months.length - 1));
+    measureCW();   // getBoundingClientRect forces layout → reliable width
+    paint();
+  }
+
+  function paint() {
+    const cw = V.cw, wide = V.wide;
+    const m = S.meta, C = S.counters;
+
+    /* ---- header ---- */
+    const title = m.monthsIn <= 1 ? 'One month in' : (WORDS[m.monthsIn] || m.monthsIn) + ' months in';
+    const fmt = iso => { const p = iso.split('-'); return MONALL[+p[1] - 1] + ' ' + (+p[2]); };
+    const sub = fmt(m.startISO) + ' – ' + fmt(m.endISO) + ', ' + m.endISO.slice(0, 4) +
+      ' · ' + m.habitCount + ' habit' + (m.habitCount === 1 ? '' : 's');
+    const header = `<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:6px 2px 22px;">
+      <div style="display:flex;flex-direction:column;gap:7px;min-width:0;">
+        <div style="font:700 10px/1 ${F};letter-spacing:0.18em;color:${T4};">PROGRESS</div>
+        <div style="font:800 27px/1 ${F};letter-spacing:-0.03em;color:${T0};">${esc(title)}</div>
+        <div style="font:500 12px/1.4 ${F};color:${T3};">${esc(sub)}</div>
+      </div>
+      <div data-act="back" style="cursor:pointer;padding:7px 12px;border-radius:999px;background:#14141B;border:1px solid rgba(255,255,255,0.06);font:700 10.5px ${F};color:${T2};flex:none;">← Back</div>
+    </div>`;
+
+    /* ---- 1 · all-time counters ---- */
+    const vsb = C.vsBestMonth == null ? '–' : (C.vsBestMonth >= 0 ? '+' : '') + C.vsBestMonth;
+    const tiles = [
+      { v: C.perfectDays, l: 'PERFECT DAYS', c: T0 },
+      { v: (C.habitWins || 0).toLocaleString(), l: 'HABIT WINS', c: T0 },
+      { v: C.comebacks, l: 'COMEBACKS', c: T0 },
+      { v: vsb, l: 'VS BEST MONTH', c: GLD }
+    ].map(t => `<div style="background:rgba(255,255,255,0.015);border:1px solid rgba(255,255,255,0.05);border-radius:14px;padding:15px 14px;display:flex;flex-direction:column;gap:7px;">
+      <div style="font:800 23px/1 ${F};letter-spacing:-0.03em;color:${t.c};">${t.v}</div>
+      <div style="font:700 9px/1.3 ${F};letter-spacing:0.14em;color:${T5};">${t.l}</div></div>`).join('');
+    const counters = `<div style="display:grid;grid-template-columns:${wide ? 'repeat(4,1fr)' : 'repeat(2,1fr)'};gap:10px;">${tiles}</div>`;
+
+    /* ---- 2 · momentum waveform ---- */
+    const momentum = renderMomentum(cw);
+
+    /* ---- 3 · habit momentum rows ---- */
+    const habitMom = renderHabitMomentum(cw);
+
+    /* ---- 4 · consistency ---- */
+    const consistency = renderConsistency();
+
+    /* ---- 5 · power days ---- */
+    const power = renderPowerDays(cw);
+
+    /* ---- 6 · where habits break ---- */
+    const breaks = renderBreaks(cw);
+
+    /* ---- 7 · your year ---- */
+    const year = renderYear(cw, wide);
+
+    /* ---- 8 · leaderboard ---- */
+    const board = renderBoard();
+
+    const footer = `<div style="text-align:center;font:500 10.5px/1.6 ${F};color:${T7};padding:18px 0 4px;">${m.daysTracked} days tracked · updated today</div>`;
+
+    app.innerHTML = header +
+      `<div class="hs-cards">${counters}${momentum}${habitMom}${consistency}${power}${breaks}${year}${board}</div>` +
+      footer;
+  }
+
+  /* ===== section builders ===== */
+  const sectionHead = (label, meta, metaColor) =>
+    `<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+      <div style="font:700 10px/1 ${F};letter-spacing:0.18em;color:${T4};">${label}</div>
+      <div style="font:600 9.5px/1 ${F};letter-spacing:0.12em;color:${metaColor || T6};">${meta}</div>
+    </div>`;
+
+  function renderMomentum(cw) {
+    const MV = S.months.map(x => x.pct);
+    const MON = S.months.map(x => x.name), MONF = S.months.map(x => x.full);
+    const n = MV.length;
+    const head = sectionHead('MOMENTUM', 'MONTHLY COMPLETION');
+    if (n < 2) {
+      const only = MV[0] || 0;
+      return `<div class="hs-card" style="padding:18px 18px 14px;">${head}
+        <div style="display:flex;align-items:flex-end;gap:10px;margin:16px 0 0;">
+          <div style="font:800 46px/0.9 ${F};letter-spacing:-0.04em;color:${T0};">${only}<span style="font:700 19px ${F};color:#7C7990;">%</span></div>
+        </div>
+        <div style="font:500 12px/1 ${F};color:${T3};margin:9px 0 2px;">${MONF[0] || ''} · first month tracked · the line starts next month</div>
+      </div>`;
+    }
+    const mh = 152, top = 16, base = 120;
+    const dmin = Math.min.apply(null, MV) - 16, dmax = Math.max.apply(null, MV) + 10;
+    const yOf = v => top + (1 - (v - dmin) / (dmax - dmin || 1)) * (base - top);
+    const step = cw / n, padX = step / 2;
+    const pts = MV.map((v, i) => ({ x: padX + i * step, y: yOf(v) }));
+    const line = smooth(pts);
+    const path = 'M 0 ' + pts[0].y.toFixed(1) + ' L ' + pts[0].x.toFixed(1) + ' ' + pts[0].y.toFixed(1) +
+      ' ' + line.slice(1) + ' L ' + cw + ' ' + pts[n - 1].y.toFixed(1);
+    const area = path + ' L ' + cw + ' ' + base + ' L 0 ' + base + ' Z';
+    const grid = [0.34, 0.67, 1].map(t =>
+      `<line x1="0" y1="${(top + t * (base - top)).toFixed(1)}" x2="${cw}" y2="${(top + t * (base - top)).toFixed(1)}" stroke="rgba(255,255,255,0.04)" stroke-width="1"></line>`).join('');
+    const mi = V.mi;
+    const hits = MV.map((v, i) =>
+      `<rect data-act="mi" data-i="${i}" x="${(i * step).toFixed(1)}" y="0" width="${step.toFixed(1)}" height="${mh}" fill="transparent" style="cursor:pointer;"></rect>`).join('');
+    const labels = MON.map((t, i) =>
+      `<div style="flex:1 1 0;text-align:center;font:600 10px ${F};letter-spacing:0.04em;color:${i === mi ? LAV : T6};transition:color .2s ease;">${t}</div>`).join('');
+    const hv = MV[mi];
+    const dl = mi === 0 ? null : MV[mi] - MV[mi - 1];
+    const chip = dl === null ? '' :
+      `<div style="display:flex;align-items:center;gap:5px;padding:5px 10px;border-radius:999px;font:700 11.5px ${F};background:${dl >= 0 ? 'rgba(151,196,89,0.12)' : 'rgba(240,149,149,0.11)'};color:${dl >= 0 ? GRN : RED};margin-bottom:7px;">${dl >= 0 ? '↑ ' : '↓ '}${Math.abs(dl)} pts</div>`;
+    const daysIn = +m0Day();
+    const sub = mi === 0 ? (MONF[0] + ' · first month tracked')
+      : MONF[mi] + ' vs ' + MONF[mi - 1] + (mi === n - 1 ? ' · ' + daysIn + ' days in' : '');
+    const hx = pts[mi].x.toFixed(1), hy = pts[mi].y.toFixed(1);
+
+    return `<div class="hs-card" style="padding:18px 18px 14px;">${head}
+      <div style="display:flex;align-items:flex-end;gap:10px;margin:16px 0 0;">
+        <div style="font:800 46px/0.9 ${F};letter-spacing:-0.04em;color:${T0};">${hv}<span style="font:700 19px ${F};color:#7C7990;">%</span></div>
+        ${chip}
+      </div>
+      <div style="font:500 12px/1 ${F};color:${T3};margin:9px 0 10px;">${esc(sub)}</div>
+      <svg width="100%" height="${mh}" viewBox="0 0 ${cw} ${mh}" preserveAspectRatio="none" style="display:block;">
+        <defs>
+          <linearGradient id="hsFill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="${PUR}" stop-opacity="0.40"></stop>
+            <stop offset="0.5" stop-color="${PUR}" stop-opacity="0.13"></stop>
+            <stop offset="1" stop-color="${PUR}" stop-opacity="0"></stop></linearGradient>
+          <linearGradient id="hsLine" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="${PUR}"></stop><stop offset="1" stop-color="${LAV}"></stop></linearGradient>
+          <filter id="hsBlur" x="-10%" y="-60%" width="120%" height="220%"><feGaussianBlur stdDeviation="6"></feGaussianBlur></filter>
+        </defs>
+        ${grid}
+        <path d="${area}" fill="url(#hsFill)"></path>
+        <path d="${path}" fill="none" stroke="url(#hsLine)" stroke-width="7" opacity="0.22" filter="url(#hsBlur)" stroke-linecap="round"></path>
+        <path d="${path}" fill="none" stroke="url(#hsLine)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"></path>
+        <line x1="${hx}" y1="${hy}" x2="${hx}" y2="${base}" stroke="rgba(175,169,236,0.22)" stroke-width="1" stroke-dasharray="2 3"></line>
+        <circle cx="${hx}" cy="${hy}" r="12" fill="rgba(175,169,236,0.14)" style="animation:hsHalo 2.8s ease-in-out infinite;"></circle>
+        <circle cx="${hx}" cy="${hy}" r="5.4" fill="#0D0D12" stroke="${LAV}" stroke-width="2.4"></circle>
+        ${hits}
+      </svg>
+      <div style="display:flex;margin-top:8px;">${labels}</div>
+    </div>`;
+  }
+  // elapsed days in the current (latest) month = day-of-month of endISO
+  function m0Day() { return +S.meta.endISO.slice(8, 10); }
+
+  function renderHabitMomentum(cw) {
+    const H = S.habitStats, sw = cw, sh = 46, sTop = 6, sBase = 40;
+    const rows = H.map((h, i) => {
+      const dotC = h.pct >= 75 ? 'rgba(151,196,89,0.85)' : (h.pct >= 55 ? 'rgba(250,199,117,0.8)' : 'rgba(240,149,149,0.8)');
+      const dCol = h.delta == null ? T4 : (h.delta > 0 ? GRN : (h.delta < 0 ? RED : T4));
+      const dTxt = h.delta == null ? '' : (h.delta >= 0 ? '↑ ' : '↓ ') + Math.abs(h.delta);
+      let body = '';
+      if (V.open === i) {
+        let spark = '';
+        if (h.series.length >= 2) {
+          const lo = Math.min.apply(null, h.series) - 8, hi = Math.max.apply(null, h.series) + 6;
+          const sp = h.series.map((val, j) => ({ x: (j / (h.series.length - 1)) * sw, y: sTop + (1 - (val - lo) / (hi - lo || 1)) * (sBase - sTop) }));
+          const p = smooth(sp);
+          spark = `<svg width="100%" height="${sh}" viewBox="0 0 ${sw} ${sh}" preserveAspectRatio="none" style="display:block;">
+            <defs><linearGradient id="hsSpark" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${PUR}" stop-opacity="0.3"></stop><stop offset="1" stop-color="${PUR}" stop-opacity="0"></stop></linearGradient></defs>
+            <path d="${p} L ${sw} ${sBase} L 0 ${sBase} Z" fill="url(#hsSpark)"></path>
+            <path d="${p}" fill="none" stroke="#8B84E2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <circle cx="${sp[sp.length - 1].x.toFixed(1)}" cy="${sp[sp.length - 1].y.toFixed(1)}" r="3.4" fill="${LAV}"></circle>
+          </svg>`;
+        }
+        body = `<div style="padding:2px 0 18px;">${spark}
+          <div style="display:flex;gap:18px;margin-top:11px;">
+            <div style="font:500 11px/1.5 ${F};color:${T3};">Best streak <span style="color:${T1};font-weight:700;">${h.best} days</span></div>
+            <div style="font:500 11px/1.5 ${F};color:${T3};">All-time <span style="color:${T1};font-weight:700;">${h.all}%</span></div>
+          </div></div>`;
+      }
+      return `<div style="border-bottom:1px solid ${DIV};">
+        <div data-act="open" data-i="${i}" style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:15px 0;cursor:pointer;">
+          <div style="display:flex;align-items:center;gap:9px;min-width:0;">
+            <div style="width:5px;height:5px;border-radius:999px;flex:none;background:${dotC};"></div>
+            <div style="font:600 13.5px/1.4 ${F};color:${T1};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(h.name)}</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:11px;flex:none;">
+            <div style="font:700 13.5px/1 ${F};color:${T2};font-variant-numeric:tabular-nums;">${h.pct}%</div>
+            <div style="font:700 11.5px/1 ${F};color:${dCol};min-width:34px;text-align:right;">${dTxt}</div>
+          </div>
+        </div>${body}
+      </div>`;
+    }).join('');
+    return `<div class="hs-card" style="padding:18px 18px 8px;">${sectionHead('HABIT MOMENTUM', 'VS ' + prevMonthName().toUpperCase())}
+      <div style="display:flex;flex-direction:column;margin-top:6px;">${rows}</div></div>`;
+  }
+  function prevMonthName() {
+    const n = S.months.length;
+    return n >= 2 ? S.months[n - 2].full : (S.months[0] ? S.months[0].full : '');
+  }
+
+  function renderConsistency() {
+    const A0 = 132, SW = 276, r = 56, cx = 73, cy = 62, score = S.consistency;
+    const track = arcPath(cx, cy, r, A0, A0 + SW);
+    const prog = arcPath(cx, cy, r, A0, A0 + SW * score / 100);
+    const tip = pol(cx, cy, r, A0 + SW * score / 100);
+    const bar = (label, val, color) => `<div style="display:flex;flex-direction:column;gap:6px;">
+      <div style="display:flex;align-items:baseline;justify-content:space-between;"><div style="font:600 11.5px ${F};color:${T3};">${label}</div><div style="font:800 15px ${F};color:${T1};">${val}%</div></div>
+      <div style="height:5px;border-radius:999px;background:rgba(255,255,255,0.055);overflow:hidden;"><div style="width:${val}%;height:100%;border-radius:999px;background:${color};"></div></div></div>`;
+    return `<div class="hs-card">
+      <div style="font:700 10px/1 ${F};letter-spacing:0.18em;color:${T4};">CONSISTENCY</div>
+      <div style="display:flex;align-items:center;gap:18px;margin-top:12px;">
+        <div style="position:relative;width:146px;height:132px;flex:none;">
+          <svg width="146" height="132" viewBox="0 0 146 132" style="display:block;overflow:visible;">
+            <defs><linearGradient id="hsArc" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="${PUR}"></stop><stop offset="1" stop-color="${LAV}"></stop></linearGradient></defs>
+            <path d="${track}" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="10" stroke-linecap="round"></path>
+            <path d="${prog}" fill="none" stroke="url(#hsArc)" stroke-width="10" stroke-linecap="round"></path>
+            <circle cx="${tip.x.toFixed(2)}" cy="${tip.y.toFixed(2)}" r="9" fill="rgba(175,169,236,0.16)"></circle>
+            <circle cx="${tip.x.toFixed(2)}" cy="${tip.y.toFixed(2)}" r="3.4" fill="#DAD6FA"></circle>
+          </svg>
+          <div style="position:absolute;left:0;top:0;width:146px;height:124px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;pointer-events:none;">
+            <div style="font:800 34px/1 ${F};letter-spacing:-0.04em;color:${T0};">${score}</div>
+            <div style="font:700 9px/1 ${F};letter-spacing:0.18em;color:${T4};">ON PLAN</div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:14px;flex:1 1 0;min-width:0;">
+          ${bar('Weekdays', S.weekdayAvg, GRN)}
+          ${bar('Weekends', S.weekendAvg, RED)}
+          <div style="font:600 11px/1.4 ${F};color:${RED};white-space:nowrap;">Weekend dip · ${S.dip} pts</div>
+        </div>
+      </div></div>`;
+  }
+
+  function renderPowerDays(cw) {
+    const pd = S.weekday, best = S.bestDay, score = S.consistency;
+    const sel = V.pd == null ? best : V.pd;
+    const tX = 34, tW = cw - 82, rowH = 32, pdH = 7 * rowH;
+    const avgLineX = (tX + tW * score / 100).toFixed(1);
+    const lanes = pd.map((val, i) => ({ i, val })).sort((a, b) => b.val - a.val);
+    let svgRows = '', labelRows = '', valueRows = '';
+    lanes.forEach((o, rank) => {
+      const y = rank * rowH + 4, isB = o.i === best, isS = o.i === sel;
+      const fill = isB ? GLD : (isS ? LAV : 'rgba(127,119,221,0.40)');
+      svgRows += `<g data-act="pd" data-i="${o.i}" style="cursor:pointer;">
+        <rect x="0" y="${y - 10}" width="${cw}" height="${rowH}" fill="transparent"></rect>
+        <rect x="${tX}" y="${y}" width="${tW.toFixed(1)}" height="12" rx="6" fill="rgba(255,255,255,0.045)"></rect>
+        <rect x="${tX}" y="${y}" width="${(tW * o.val / 100).toFixed(1)}" height="12" rx="6" fill="${fill}" style="transition:fill .2s ease;"></rect></g>`;
+      labelRows += `<div style="position:absolute;left:0;top:${y + 6}px;transform:translateY(-50%);font:700 11px/1 ${F};letter-spacing:0.06em;color:${isB || isS ? T2 : T5};pointer-events:none;">${WD[o.i].toUpperCase()}</div>`;
+      valueRows += `<div style="position:absolute;right:0;top:${y + 6}px;transform:translateY(-50%);font:800 12px/1 ${F};color:${isB ? GLD : (isS ? LAV : T3)};pointer-events:none;">${o.val}%</div>`;
+    });
+    const pdLabel = (V.pd == null ? 'Best · ' : '') + WD[sel] + ' ' + pd[sel] + '%';
+    const pdBg = sel === best ? 'rgba(250,199,117,0.12)' : 'rgba(175,169,236,0.12)';
+    const pdCol = sel === best ? GLD : LAV;
+    return `<div class="hs-card" style="padding:18px 18px 12px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+        <div style="font:700 10px/1 ${F};letter-spacing:0.18em;color:${T4};">POWER DAYS</div>
+        <div style="padding:5px 10px;border-radius:999px;background:${pdBg};font:700 11px ${F};color:${pdCol};">${pdLabel}</div>
+      </div>
+      <div style="position:relative;height:13px;margin-top:16px;">
+        <div style="position:absolute;left:${avgLineX}px;top:0;transform:translateX(-50%);font:700 8.5px/1 ${F};letter-spacing:0.14em;color:${T6};white-space:nowrap;">AVG ${score}</div>
+      </div>
+      <div style="position:relative;">
+        <svg width="100%" height="${pdH}" viewBox="0 0 ${cw} ${pdH}" preserveAspectRatio="none" style="display:block;">
+          <line x1="${avgLineX}" y1="0" x2="${avgLineX}" y2="${pdH}" stroke="rgba(255,255,255,0.13)" stroke-width="1" stroke-dasharray="2 4"></line>
+          ${svgRows}
+        </svg>
+        ${labelRows}${valueRows}
+      </div></div>`;
+  }
+
+  function renderBreaks(cw) {
+    const H = S.habitStats, score = S.consistency;
+    const px5 = 22, sx5 = (cw - 44) / 6, y5 = v => 150 - ((v - 20) / 80) * 130;
+    const means = H.map(h => mean(h.row));
+    const weak = means.indexOf(Math.min.apply(null, means));
+    const sb = V.sb, focus = sb == null ? weak : sb;
+    const avgY = y5(score).toFixed(1);
+    const bandX = (px5 + 4 * sx5 - sx5 * 0.5).toFixed(1), bandW = (sx5 * 2).toFixed(1);
+    const lines = H.map((h, i) => {
+      const pts = ORD.map((w, j) => ({ x: px5 + j * sx5, y: y5(h.row[w]) }));
+      const on = i === focus;
+      const stroke = on ? (sb == null ? RED : LAV) : (sb == null ? 'rgba(127,119,221,0.26)' : 'rgba(127,119,221,0.13)');
+      return `<path d="${smooth(pts)}" fill="none" stroke="${stroke}" stroke-width="${on ? 2.4 : 1.4}" stroke-linecap="round" stroke-linejoin="round" style="transition:stroke .2s ease;"></path>`;
+    }).join('');
+    const dots = ORD.map((w, j) =>
+      `<circle cx="${(px5 + j * sx5).toFixed(1)}" cy="${y5(H[focus].row[w]).toFixed(1)}" r="3.2" fill="${sb == null ? RED : LAV}"></circle>`).join('');
+    const wdCells = ORD.map(w =>
+      `<div style="flex:1 1 0;text-align:center;font:700 10px/1 ${F};letter-spacing:0.06em;color:${w >= 4 && w <= 5 ? T3 : T6};">${WDL[w]}</div>`).join('');
+    const chips = H.map((h, i) => {
+      const on = i === focus;
+      return `<div data-act="sb" data-i="${i}" style="cursor:pointer;padding:6px 10px;border-radius:999px;font:600 10.5px/1 ${F};background:${on ? 'rgba(175,169,236,0.14)' : 'transparent'};color:${on ? LAV : T4};border:1px solid ${on ? 'rgba(175,169,236,0.35)' : 'rgba(255,255,255,0.07)'};transition:all .18s ease;">${esc(h.name)}</div>`;
+    }).join('');
+    const note = sb == null ? 'Fri–Sat is the cliff' : esc(H[sb].name) + ' · low ' + Math.min.apply(null, H[sb].row) + '%';
+    return `<div class="hs-card">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+        <div style="font:700 10px/1 ${F};letter-spacing:0.18em;color:${T4};">WHERE HABITS BREAK</div>
+        <div style="font:600 11px/1 ${F};color:${sb == null ? T3 : LAV};">${note}</div>
+      </div>
+      <div style="position:relative;margin-top:14px;">
+        <svg width="100%" height="164" viewBox="0 0 ${cw} 164" preserveAspectRatio="none" style="display:block;">
+          <rect x="${bandX}" y="0" width="${bandW}" height="150" rx="10" fill="rgba(240,149,149,0.055)"></rect>
+          <line x1="0" y1="${avgY}" x2="${cw}" y2="${avgY}" stroke="rgba(255,255,255,0.07)" stroke-width="1" stroke-dasharray="2 4"></line>
+          ${lines}${dots}
+        </svg>
+        <div style="position:absolute;left:0;top:${avgY}px;transform:translateY(-50%);font:700 8px/1 ${F};letter-spacing:0.14em;color:${T6};background:${CARD};padding-right:5px;">AVG</div>
+      </div>
+      <div style="display:flex;">${wdCells}</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:16px;">${chips}</div></div>`;
+  }
+
+  function renderYear(cw, wide) {
+    const days = S.year, gap = wide ? 1.8 : 1.4, cell = (cw + gap) / 53 - gap;
+    const year = +S.meta.endISO.slice(0, 4);
+    const lead = (new Date(year, 0, 1).getDay() + 6) % 7;
+    const lv = ['#191921', 'rgba(151,196,89,0.20)', 'rgba(151,196,89,0.38)', 'rgba(151,196,89,0.62)', GRN];
+    const yrH = (7 * (cell + gap) - gap).toFixed(1);
+    const cells = days.map((dy, i) => {
+      const k = lead + i, col = Math.floor(k / 7), row = dy.wd;
+      const lvl = dy.c === 0 ? 0 : (dy.c <= 2 ? 1 : (dy.c <= 4 ? 2 : (dy.c === 5 ? 3 : 4)));
+      const fill = dy.future ? '#101016' : lv[lvl];
+      const act = dy.future ? '' : ` data-act="day" data-i="${i}"`;
+      return `<rect${act} x="${(col * (cell + gap)).toFixed(2)}" y="${(row * (cell + gap)).toFixed(2)}" width="${cell.toFixed(2)}" height="${cell.toFixed(2)}" rx="${(cell * 0.28).toFixed(2)}" fill="${fill}" style="cursor:${dy.future ? 'default' : 'pointer'};"></rect>`;
+    }).join('');
+    const months = YRM.map(x => `<div style="flex:1 1 0;font:700 9px ${F};letter-spacing:0.1em;color:${T6};">${x}</div>`).join('');
+    return `<div class="hs-card">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+        <div style="font:700 10px/1 ${F};letter-spacing:0.18em;color:${T4};">YOUR YEAR</div>
+        <div data-yrnote style="font:600 11px/1 ${F};color:${T3};">${S.meta.daysLogged} days logged</div>
+      </div>
+      <div style="display:flex;margin:16px 0 6px;">${months}</div>
+      <svg width="100%" height="${yrH}" viewBox="0 0 ${cw} ${yrH}" preserveAspectRatio="none" style="display:block;">${cells}</svg></div>`;
+  }
+  function updateYearNote(i) {
+    const dy = S.year[i]; if (!dy || dy.future) return;
+    V.day = i;
+    const el = panel.querySelector('[data-yrnote]'); if (!el) return;
+    el.textContent = MONALL[dy.m] + ' ' + dy.d + ' · ' + dy.c + ' of ' + S.meta.habitCount + ' habits';
+    el.style.color = dy.c >= 5 ? GRN : (dy.c >= 3 ? T2 : RED);
+  }
+
+  function renderBoard() {
+    const badge = [
+      { bg: GLD, fg: '#17171F', bd: GLD },
+      { bg: 'rgba(175,169,236,0.9)', fg: '#17171F', bd: 'rgba(175,169,236,0.9)' },
+      { bg: 'rgba(175,169,236,0.14)', fg: LAV, bd: 'rgba(175,169,236,0.4)' }
+    ];
+    const board = S.habitStats.map(h => ({ n: h.name, b: h.best, all: h.all }))
+      .sort((a, b) => b.all - a.all)
+      .map((h, i) => {
+        const bd = badge[i];
+        return `<div style="display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid ${DIV};">
+          <div style="width:23px;height:23px;border-radius:999px;flex:none;display:flex;align-items:center;justify-content:center;font:800 11px ${F};background:${bd ? bd.bg : 'transparent'};color:${bd ? bd.fg : T5};border:1px solid ${bd ? bd.bd : 'rgba(255,255,255,0.08)'};">${i + 1}</div>
+          <div style="font:600 13.5px/1.4 ${F};color:${T1};flex:1 1 0;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(h.n)}</div>
+          <div style="font:500 11px/1 ${F};color:${T4};flex:none;">${h.b}d best</div>
+          <div style="font:800 14px/1 ${F};color:${i === 0 ? GLD : T2};flex:none;font-variant-numeric:tabular-nums;">${h.all}%</div>
+        </div>`;
+      }).join('');
+    return `<div class="hs-card" style="padding:18px 18px 10px;">${sectionHead('LEADERBOARD', 'ALL TIME')}
+      <div style="display:flex;flex-direction:column;margin-top:4px;">${board}</div></div>`;
+  }
 
   async function load() {
     try {
       const r = await fetch(API + '/get-stats');
       S = await r.json();
+      V.mi = Math.max(0, (S.months ? S.months.length : 1) - 1);
       return S;
     } catch (e) { console.error('stats load failed', e); return null; }
   }
@@ -290,7 +578,7 @@
   let focus = { good: null, bad: null };
 
   function obRender() {
-    const dots = ['●○○○','○●○○','○○●○','○○○●'][step];
+    const dots = ['●○○○', '○●○○', '○○●○', '○○○●'][step];
     if (step === 0) ob.innerHTML = `<div class="obx-wrap">
       <div class="obx-dots">${dots}</div>
       <div class="obx-big">⚡</div>
