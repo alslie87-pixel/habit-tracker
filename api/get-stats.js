@@ -1,30 +1,211 @@
-const { google } = require('googleapis');
-
-// v28 stats endpoint — one batchGet, everything the stats page needs.
+// v29 stats endpoint — one batchGet, everything the Progress page needs.
+// Derives all values the design's State Management section lists, from the
+// real habit-log grid (readonly). No writes.
+//
 // Month grid columns (0-based within A1:X47):
 //   B=1 date · C..I=2..8 bad · J..P=9..15 good · Q=16 BH% · R=17 GH%
-//   W=22 weekday helper · X=23 numeric GH daily helper
-//   Row 46 (idx 45) = monthly counts per habit · M47=[46][12] · H47=[46][7]
+//   W=22 weekday helper (1=Mon … 7=Sun) · X=23 numeric GH daily helper
+//   Row 46 (idx 45) = monthly counts per habit.
 // Control Panel: E7:H20 habit slots · Z1 = hidden app-onboarded marker.
+//
+// The pure derivation lives in computeStats() so it can be unit-tested
+// against a synthetic grid without touching the live sheet.
 
 const MONTHS = ["January","February","March","April","May","June",
                 "July","August","September","October","November","December"];
 const WEEK_STARTS = [1, 10, 19, 28, 37]; // 0-based array rows (sheet rows 2,11,20,29,38)
 const DEFAULT_HABITS = ['No alcohol','No social media','No sugar','Exercise','Read','Early to bed'];
+const DAY = 86400000;
 
 function serialToDate(v) {
   if (typeof v !== 'number') return null;
-  const ud = new Date(Date.UTC(1899, 11, 30) + Math.round(v) * 86400000);
+  const ud = new Date(Date.UTC(1899, 11, 30) + Math.round(v) * DAY);
   return new Date(ud.getUTCFullYear(), ud.getUTCMonth(), ud.getUTCDate());
 }
 const isChecked = v => v === true || v === 'TRUE';
-const num = v => (typeof v === 'number' && !isNaN(v)) ? v : null;
+const pad2 = n => (n < 10 ? '0' : '') + n;
+const isoLocal = d => d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
+const mean = a => a.length ? a.reduce((s, x) => s + x, 0) / a.length : 0;
+
+// ── pure derivation ────────────────────────────────────────
+// monthGrids: 12 arrays of rows (unformatted values) · cpRows: Control Panel
+// E7:H20 · markerCell: Control Panel Z1 · today: local-midnight Date.
+function computeStats({ monthGrids, cpRows, markerCell, today }) {
+  const curMonth = today.getMonth();
+  const year = today.getFullYear();
+
+  // habits (position-based, like get-habits)
+  const habits = [];
+  (cpRows || []).forEach((row, idx) => {
+    const type = (row[0] || '').toString().trim().toLowerCase();
+    const name = (row[1] || '').toString().trim();
+    const status = (row[2] || '').toString().trim().toLowerCase();
+    if (!type || !name || status === 'empty') return;
+    const colIndex = idx <= 6 ? 2 + idx : 9 + (idx - 7);
+    habits.push({ name, type, status, colIndex });
+  });
+  const active = habits.filter(h => h.status === 'active');
+  const N = active.length;
+
+  // day rows per month (chronological, date <= today)
+  function dayRows(grid) {
+    const out = [];
+    WEEK_STARTS.forEach(ws => {
+      for (let d = 0; d < 7; d++) {
+        const row = grid[ws + d]; if (!row) continue;
+        const date = serialToDate(row[1]); if (!date) continue;
+        out.push({ row, date });
+      }
+    });
+    return out;
+  }
+  const monthDayRows = monthGrids.map(g =>
+    dayRows(g).filter(x => x.date <= today).sort((a, b) => a.date - b.date));
+
+  // per-day habit counts (real log → year grid + counters)
+  const countByISO = {};
+  let checksYTD = 0;
+  monthDayRows.forEach(rows => {
+    rows.forEach(({ row, date }) => {
+      let c = 0;
+      active.forEach(h => { if (isChecked(row[h.colIndex])) c++; });
+      countByISO[isoLocal(date)] = c;
+      checksYTD += c;
+    });
+  });
+
+  const elapsedMonths = [];
+  for (let mi = 0; mi <= curMonth; mi++) elapsedMonths.push(mi);
+
+  // per-habit derivations
+  const habitStats = active.map(h => {
+    const monthRate = monthGrids.map(() => null);
+    const wdChecks = [0, 0, 0, 0, 0, 0, 0], wdDays = [0, 0, 0, 0, 0, 0, 0];
+    let tot = 0, totDays = 0;
+    const seq = [];
+    let run = 0, best = 0, lastOk = null;
+
+    monthDayRows.forEach((rows, mi) => {
+      let c = 0, d = 0;
+      rows.forEach(({ row, date }) => {
+        d++; totDays++;
+        const p = (row[22] || 0) - 1;                     // 0=Mon … 6=Sun
+        if (p >= 0 && p < 7) wdDays[p]++;
+        const ok = isChecked(row[h.colIndex]);
+        seq.push(ok);
+        if (ok) {
+          c++; tot++;
+          if (p >= 0 && p < 7) wdChecks[p]++;
+          run = (lastOk && (date - lastOk) === DAY) ? run + 1 : 1;
+          if (run > best) best = run;
+          lastOk = date;
+        } else run = 0;
+      });
+      monthRate[mi] = d ? c / d : null;
+    });
+
+    // comebacks: ≥3 consecutive hits preceded by ≥4 consecutive misses
+    let comebacks = 0;
+    for (let i = 4; i < seq.length - 2; i++)
+      if (seq[i] && seq[i + 1] && seq[i + 2] &&
+          !seq[i - 1] && !seq[i - 2] && !seq[i - 3] && !seq[i - 4]) comebacks++;
+
+    const rowPct = wdDays.map((dd, p) => dd ? Math.round(wdChecks[p] / dd * 100) : 0);
+    const series = elapsedMonths.map(mi =>
+      monthRate[mi] === null ? 0 : Math.round(monthRate[mi] * 100));
+    const cur = monthRate[curMonth];
+    const prev = curMonth > 0 ? monthRate[curMonth - 1] : null;
+
+    return {
+      name: h.name, type: h.type,
+      pct: cur === null ? 0 : Math.round(cur * 100),
+      delta: (cur !== null && prev !== null)
+        ? Math.round(cur * 100) - Math.round(prev * 100) : null,
+      series, best, all: totDays ? Math.round(tot / totDays * 100) : 0,
+      row: rowPct, comebacks
+    };
+  });
+
+  // overall monthly completion % (mean of habit rates)
+  const months = elapsedMonths.map(mi => {
+    const rates = habitStats.map(h => h.series[mi]).filter(v => v !== null && v !== undefined);
+    return { name: MONTHS[mi].slice(0, 3), full: MONTHS[mi], pct: Math.round(mean(rates)) };
+  });
+
+  // weekday means + consistency (design definitions)
+  const weekday = [];
+  for (let p = 0; p < 7; p++) weekday.push(Math.round(mean(habitStats.map(h => h.row[p]))));
+  const consistency = Math.round(mean(weekday));
+  const weekdayAvg = Math.round(mean(weekday.slice(0, 5)));
+  const weekendAvg = Math.round(mean(weekday.slice(5)));
+  const dip = weekdayAvg - weekendAvg;
+  const bestDay = weekday.indexOf(Math.max.apply(null, weekday));
+
+  // counters
+  let perfectDays = 0, daysLogged = 0, habitWins = 0;
+  Object.keys(countByISO).forEach(iso => {
+    const c = countByISO[iso];
+    habitWins += c;
+    if (c >= 1) daysLogged++;
+    if (N > 0 && c === N) perfectDays++;
+  });
+  const comebacks = habitStats.reduce((s, h) => s + h.comebacks, 0);
+  const curPct = months.length ? months[months.length - 1].pct : 0;
+  const prevMax = months.length > 1
+    ? Math.max.apply(null, months.slice(0, -1).map(m => m.pct)) : null;
+  const vsBestMonth = prevMax === null ? null : curPct - prevMax;
+
+  // your year — every calendar day of the year
+  const yearCells = [];
+  for (let m = 0; m < 12; m++) {
+    const dim = new Date(year, m + 1, 0).getDate();
+    for (let d = 1; d <= dim; d++) {
+      const date = new Date(year, m, d);
+      const wd = (date.getDay() + 6) % 7;                 // 0=Mon … 6=Sun
+      const future = date > today;
+      const c = future ? 0 : (countByISO[isoLocal(date)] || 0);
+      yearCells.push({ m, d, wd, c, future: future ? 1 : 0 });
+    }
+  }
+
+  const jan1 = new Date(year, 0, 1);
+  const daysTracked = Math.round((today - jan1) / DAY) + 1;
+
+  // onboarding state (unchanged contract)
+  const names = active.map(h => h.name).sort();
+  const isDefault = names.length === 6 &&
+    DEFAULT_HABITS.slice().sort().every((n, i) => n === names[i]);
+  const onboarded = String(markerCell || '').trim() === 'app-onboarded';
+  const needsOnboarding = !onboarded && isDefault && checksYTD === 0;
+
+  return {
+    needsOnboarding,
+    habits: active.map(h => ({ name: h.name, type: h.type })),
+    meta: {
+      monthsIn: curMonth + 1,
+      habitCount: N,
+      startISO: isoLocal(jan1),
+      endISO: isoLocal(today),
+      daysTracked,
+      daysLogged
+    },
+    months,
+    habitStats: habitStats.map(h => ({
+      name: h.name, type: h.type, pct: h.pct, delta: h.delta,
+      series: h.series, best: h.best, all: h.all, row: h.row
+    })),
+    weekday, consistency, weekdayAvg, weekendAvg, dip, bestDay,
+    counters: { perfectDays, habitWins, comebacks, vsBestMonth },
+    year: yearCells
+  };
+}
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   if (req.method === 'OPTIONS') return res.status(200).end();
 
   try {
+    const { google } = require('googleapis');
     const creds = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT);
     const auth = new google.auth.GoogleAuth({
       credentials: creds,
@@ -48,160 +229,12 @@ module.exports = async (req, res) => {
     const markerCell = (vr[13].values && vr[13].values[0] && vr[13].values[0][0]) || '';
 
     const today = new Date(); today.setHours(0, 0, 0, 0);
-    const curMonth = today.getMonth();
 
-    // ── habits (position-based, like get-habits) ─────────────
-    const habits = [];
-    cpRows.forEach((row, idx) => {
-      const type = (row[0] || '').toString().trim().toLowerCase();
-      const name = (row[1] || '').toString().trim();
-      const status = (row[2] || '').toString().trim().toLowerCase();
-      if (!type || !name || status === 'empty') return;
-      const colIndex = idx <= 6 ? 2 + idx : 9 + (idx - 7);
-      habits.push({ name, type, status, colIndex });
-    });
-    const active = habits.filter(h => h.status === 'active');
-
-    // ── helpers over one month grid ──────────────────────────
-    function dayRows(grid) {
-      const out = [];
-      WEEK_STARTS.forEach(ws => {
-        for (let d = 0; d < 7; d++) {
-          const r = ws + d;
-          const row = grid[r]; if (!row) continue;
-          const date = serialToDate(row[1]); if (!date) continue;
-          out.push({ r, row, date });
-        }
-      });
-      return out;
-    }
-
-    // ── per-month aggregates + daily series ──────────────────
-    const months = [];
-    const daily = [];
-    let checksYTD = 0, perfectDays = 0, bestDayEver = 0, bestWeekEver = 0;
-
-    monthGrids.forEach((grid, mi) => {
-      const g47 = grid[46] || [];
-      const good = num(g47[12]);
-      const bad  = num(g47[7]);
-      months.push({ name: MONTHS[mi].slice(0, 3), good, bad });
-
-      [9, 18, 27, 36, 45].forEach(sr => {
-        const w = grid[sr] && num(grid[sr][17]);
-        if (w !== null && w !== undefined && w > bestWeekEver) bestWeekEver = w;
-      });
-
-      dayRows(grid).forEach(({ row, date }) => {
-        if (date > today) return;
-        const p = num(row[23]);
-        if (p !== null) {
-          daily.push({ t: date.toISOString().slice(0, 10), p });
-          if (p > bestDayEver) bestDayEver = p;
-          if (p >= 0.999 && active.some(h => h.type === 'good')) perfectDays++;
-        }
-        for (let c = 2; c <= 15; c++) if (isChecked(row[c])) checksYTD++;
-      });
-    });
-    daily.sort((a, b) => a.t < b.t ? -1 : 1);
-
-    const monthVals = months.map(m => m.good).filter(v => v !== null && v > 0);
-    const bestMonthIdx = months.reduce((bi, m, i) =>
-      (m.good !== null && (bi === -1 || m.good > months[bi].good)) ? i : bi, -1);
-    const vsBest = (bestMonthIdx >= 0 && months[curMonth] && months[curMonth].good)
-      ? months[curMonth].good / months[bestMonthIdx].good : null;
-
-    // ── current month detail ─────────────────────────────────
-    const cg = monthGrids[curMonth];
-    const rowsNow = dayRows(cg).filter(x => x.date <= today);
-    const elapsed = rowsNow.length || 1;
-
-    const consistency = rowsNow.filter(x => (num(x.row[23]) || 0) >= 0.66).length / elapsed;
-
-    const wkendRows = rowsNow.filter(x => (x.row[22] || 0) > 5);
-    const wkdayRows = rowsNow.filter(x => { const w = x.row[22] || 0; return w >= 1 && w <= 5; });
-    const avg = rs => rs.length ? rs.reduce((s, x) => s + (num(x.row[23]) || 0), 0) / rs.length : null;
-    const weekendGap = (wkendRows.length && wkdayRows.length) ? avg(wkendRows) - avg(wkdayRows) : null;
-
-    const weekday = [];
-    for (let d = 1; d <= 7; d++) {
-      const rs = rowsNow.filter(x => x.row[22] === d);
-      weekday.push(rs.length ? Math.round(avg(rs) * 100) : null);
-    }
-
-    const matrix = active.map(h => {
-      const days = [];
-      for (let d = 1; d <= 7; d++) {
-        const rs = rowsNow.filter(x => x.row[22] === d);
-        days.push(rs.length
-          ? Math.round(rs.filter(x => isChecked(x.row[h.colIndex])).length / rs.length * 100)
-          : null);
-      }
-      return { name: h.name, type: h.type, days };
-    });
-
-    // comebacks: >=66% day right after a <66% day (consecutive dates)
-    let comebacks = 0;
-    for (let i = 1; i < rowsNow.length; i++) {
-      const prev = num(rowsNow[i - 1].row[23]) || 0;
-      const cur  = num(rowsNow[i].row[23]) || 0;
-      const gap = (rowsNow[i].date - rowsNow[i - 1].date) / 86400000;
-      if (gap === 1 && cur >= 0.66 && prev < 0.66) comebacks++;
-    }
-
-    // habit momentum: this month elapsed pct vs last month pct
-    const countIn = (grid, colIndex, upTo) => {
-      let c = 0, days = 0;
-      dayRows(grid).forEach(({ row, date }) => {
-        if (upTo && date > upTo) return;
-        days++;
-        if (isChecked(row[colIndex])) c++;
-      });
-      return days ? c / days : null;
-    };
-    const lastGrid = curMonth > 0 ? monthGrids[curMonth - 1] : null;
-    const momentum = active.map(h => {
-      const nowP  = countIn(cg, h.colIndex, today);
-      const lastP = lastGrid ? countIn(lastGrid, h.colIndex, null) : null;
-      return {
-        name: h.name, type: h.type,
-        now: nowP !== null ? Math.round(nowP * 100) : null,
-        delta: (nowP !== null && lastP !== null) ? Math.round((nowP - lastP) * 100) : null
-      };
-    });
-
-    // leaderboard (current month)
-    const leaderboard = active.map(h => ({
-      name: h.name, type: h.type,
-      pct: Math.round((countIn(cg, h.colIndex, today) || 0) * 100)
-    })).sort((a, b) => b.pct - a.pct);
-
-    const conqueredCount = habits.filter(h => h.status === 'conquered').length;
-
-    // ── onboarding state ─────────────────────────────────────
-    const names = active.map(h => h.name).sort();
-    const isDefault = names.length === 6 &&
-      DEFAULT_HABITS.slice().sort().every((n, i) => n === names[i]);
-    const onboarded = String(markerCell).trim() === 'app-onboarded';
-    const needsOnboarding = !onboarded && isDefault && checksYTD === 0;
-
-    res.status(200).json({
-      needsOnboarding,
-      habits: active.map(h => ({ name: h.name, type: h.type })),
-      months, daily, weekday, matrix, momentum, leaderboard,
-      consistency: Math.round(consistency * 100),
-      weekendGap: weekendGap !== null ? Math.round(weekendGap * 100) : null,
-      perfectDays, comebacks, checksYTD,
-      vsBest: vsBest !== null ? Math.round(vsBest * 100) : null,
-      bestDayEver: Math.round(bestDayEver * 100),
-      bestWeekEver: Math.round(bestWeekEver * 100),
-      bestMonthEver: bestMonthIdx >= 0
-        ? { name: months[bestMonthIdx].name, pct: Math.round(months[bestMonthIdx].good * 100) }
-        : null,
-      conqueredCount
-    });
+    res.status(200).json(computeStats({ monthGrids, cpRows, markerCell, today }));
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: err.message });
   }
 };
+
+module.exports.computeStats = computeStats;
