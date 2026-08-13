@@ -47,7 +47,7 @@
     text-align:center;color:#97C459;font-size:10px;margin-top:4px}
   #stx-fab{position:fixed;right:14px;bottom:14px;z-index:70;background:#7F77DD;color:#fff;
     border:none;border-radius:50%;width:44px;height:44px;font-size:18px;cursor:pointer;
-    box-shadow:0 4px 14px rgba(0,0,0,.4)}
+    box-shadow:0 4px 14px rgba(0,0,0,.4), inset 0 1px 2px rgba(255,255,255,.25), inset 0 -2px 4px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center}
   /* onboarding */
   #obx{position:fixed;inset:0;background:var(--bg-page);z-index:90;overflow-y:auto;
     padding:24px 18px;display:none}
@@ -79,6 +79,14 @@
   /* ---------- state ---------- */
   let S = null; // stats payload
 
+  const STX_P = 'M6 18V11 M12 18V6 M18 18V14';
+  const stxIcon = (size, mainColor) => `<svg viewBox="0 0 24 24" width="${size}" height="${size}" style="display:block">` +
+    `<g fill="none" stroke-linecap="round">` +
+    `<path d="${STX_P}" stroke="#000" stroke-opacity=".5" stroke-width="3.4" transform="translate(0,0.7)"/>` +
+    `<path d="${STX_P}" stroke="#E6E3FF" stroke-opacity=".45" stroke-width="3.4" transform="translate(0,-0.6)"/>` +
+    `<path d="${STX_P}" stroke="${mainColor || '#100E24'}" stroke-width="2.9"/>` +
+    `</g></svg>`;
+
   /* ---------- stats panel ---------- */
   const panel = document.createElement('div');
   panel.id = 'stx-panel';
@@ -86,7 +94,7 @@
 
   const fab = document.createElement('button');
   fab.id = 'stx-fab';
-  fab.textContent = '📊';
+  fab.innerHTML = `<span style="display:flex;align-items:center;justify-content:center">${stxIcon(24)}</span>`;
   fab.title = 'Progress';
   fab.onclick = openPanel;
   document.body.appendChild(fab);
@@ -102,12 +110,25 @@
   document.addEventListener('touchstart', e => {
     tx = e.touches[0].clientX; ty = e.touches[0].clientY;
   }, { passive: true });
+  let txTarget = null;
+  document.addEventListener('touchstart', e => { txTarget = e.target; }, { passive: true });
+  function inHorizontalScroller(el) {
+    while (el && el !== document.body) {
+      if (el.scrollWidth > el.clientWidth + 5) {
+        const ox = getComputedStyle(el).overflowX;
+        if (ox === 'auto' || ox === 'scroll') return true;
+      }
+      el = el.parentElement;
+    }
+    return false;
+  }
   document.addEventListener('touchend', e => {
     if (tx === null) return;
     const dx = e.changedTouches[0].clientX - tx;
     const dy = Math.abs(e.changedTouches[0].clientY - ty);
     if (Math.abs(dx) > 70 && dy < 60) {
-      if (dx < 0 && !panel.classList.contains('open')) openPanel();
+      const fromScroller = !panel.classList.contains('open') && inHorizontalScroller(txTarget);
+      if (dx < 0 && !panel.classList.contains('open') && !fromScroller) openPanel();
       if (dx > 0 && panel.classList.contains('open')) closePanel();
     }
     tx = null;
@@ -172,7 +193,7 @@
     <div class="stx-wrap">
     <div class="stx-head">
       <span class="stx-back">← back</span>
-      <span class="stx-title">📊 Progress</span>
+      <span class="stx-title" style="display:inline-flex;align-items:center;gap:7px">${stxIcon(18, '#7F77DD')} Progress</span>
       <span class="stx-sub">${new Date().getFullYear()}</span>
     </div>
     <div class="stx-dots">○ ●</div>
