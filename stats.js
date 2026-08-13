@@ -283,15 +283,14 @@
     if (step === 1) ob.innerHTML = `<div class="obx-wrap">
       <div class="obx-dots">${dots}</div>
       <div class="obx-t" style="text-align:left">Your habits</div>
-      <div class="obx-s" style="text-align:left">We filled in six classics — make them yours, or keep them.</div>
+      <div class="obx-s" style="text-align:left">We filled in six classics — make them yours, or keep them.<br><span style="font-size:10px">min 3 + 3 · max 7 + 7 · tap a name to edit it</span></div>
       <div class="obx-lbl" style="color:#F09595">▼ AVOID</div>
       ${obHabits.bad.map((h, i) => `<div class="obx-item"><input data-t="bad" data-i="${i}" value="${h}" placeholder="Enter habit here"></div>`).join('')}
-      ${obHabits.bad.length < 7 ? '<div class="obx-add" data-add="bad">+ add habit</div>' : ''}
+      ${obHabits.bad.length < 7 ? '<div class="obx-add" data-add="bad">+ add habit</div>' : '<div class="obx-add" style="cursor:default;background:var(--bg-card-inner);border:1px solid var(--border-default);color:var(--text-secondary)">Maxed out!</div>'}
       <div class="obx-lbl" style="color:#97C459">▲ BUILD</div>
       ${obHabits.good.map((h, i) => `<div class="obx-item"><input data-t="good" data-i="${i}" value="${h}" placeholder="Enter habit here"></div>`).join('')}
-      ${obHabits.good.length < 7 ? '<div class="obx-add" data-add="good">+ add habit</div>' : ''}
-      <button class="obx-btn" id="obx-next">Keep these ✓</button>
-      <div class="obx-foot">min 3 + 3 · tap a name to edit it</div></div>`;
+      ${obHabits.good.length < 7 ? '<div class="obx-add" data-add="good">+ add habit</div>' : '<div class="obx-add" style="cursor:default;background:var(--bg-card-inner);border:1px solid var(--border-default);color:var(--text-secondary)">Maxed out!</div>'}
+      <button class="obx-btn" id="obx-next">Keep these ✓</button></div>`;
     if (step === 2) ob.innerHTML = `<div class="obx-wrap">
       <div class="obx-dots">${dots}</div>
       <div class="obx-t" style="text-align:left">Pick your focus</div>
