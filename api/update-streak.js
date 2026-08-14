@@ -1,4 +1,6 @@
 const { google } = require('googleapis');
+const { resolveSheetId } = require('./_user');
+
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   if (req.method === 'OPTIONS') return res.status(200).end();
@@ -10,7 +12,7 @@ module.exports = async (req, res) => {
       scopes: ['https://www.googleapis.com/auth/spreadsheets']
     });
     const sheets = google.sheets({ version: 'v4', auth });
-    const sheetId = process.env.GOOGLE_SHEET_ID;
+    const sheetId = await resolveSheetId(req);
     await sheets.spreadsheets.values.update({
       spreadsheetId: sheetId,
       range: "'⚡ Dashboard'!C7",
