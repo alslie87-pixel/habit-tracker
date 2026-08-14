@@ -1,4 +1,6 @@
 const { google } = require('googleapis');
+const { resolveSheetId } = require('./_user');
+
 
 // v28 sheet: Focus habits live in Control Panel C20 (good/Building)
 // and C21 (bad/Eliminating).
@@ -14,7 +16,7 @@ module.exports = async (req, res) => {
       scopes: ['https://www.googleapis.com/auth/spreadsheets']
     });
     const sheets = google.sheets({ version: 'v4', auth });
-    const sheetId = process.env.GOOGLE_SHEET_ID;
+    const sheetId = await resolveSheetId(req);
     const cell = type === 'good'
       ? "'⚙️ Control Panel'!C20"
       : "'⚙️ Control Panel'!C21";
