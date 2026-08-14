@@ -371,6 +371,9 @@
   </div>
 
   <script>
+    // multi-user: ?user=<name> routes API calls to that customer's sheet
+    const HT_USER = (new URLSearchParams(location.search).get('user') || '').trim();
+    const api = p => HT_USER ? p + (p.includes('?') ? '&' : '?') + 'user=' + encodeURIComponent(HT_USER) : p;
     // ── THEME ─────────────────────────────────────────────
     const savedTheme = localStorage.getItem('hbt-theme') || 'dark';
     if (savedTheme === 'light') document.documentElement.classList.add('light');
@@ -481,7 +484,7 @@
     // ── LOAD APP ──────────────────────────────────────────
     async function loadApp() {
       try {
-        const res = await fetch('/api/get-habits');
+        const res = await fetch(api('/api/get-habits'));
         const data = await res.json();
         if (data.error) {
           document.getElementById('loading').classList.add('hidden');
@@ -756,7 +759,7 @@
         icon.textContent = newValue ? '\u2713' : '\u25CB';
       }
       try {
-        var res = await fetch('/api/toggle-habit', {
+        var res = await fetch(api('/api/toggle-habit'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ sheetName, row, col, currentValue })
@@ -829,7 +832,7 @@
       }
       closeFocusModal();
       try {
-        var res = await fetch('/api/update-focus', {
+        var res = await fetch(api('/api/update-focus'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ type, habitName })
@@ -848,7 +851,7 @@
       btn.textContent = 'Getting your coaching...';
       btn.disabled = true;
       try {
-        var res = await fetch('/api/get-coaching', {
+        var res = await fetch(api('/api/get-coaching'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -1011,7 +1014,7 @@
       btn.textContent = '...';
       btn.disabled = true;
       try {
-        var res = await fetch('/api/update-config', {
+        var res = await fetch(api('/api/update-config'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ action, type, name, newName: newName || undefined })
@@ -1066,6 +1069,6 @@
     // ── AUTO REFRESH ──────────────────────────────────────
     setTimeout(function() { window.location.reload(); }, 600000);
   </script>
-<script src="stats.js" defer></script>
+  <script src="stats.js" defer></script>
 </body>
 </html>
