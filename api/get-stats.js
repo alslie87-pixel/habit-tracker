@@ -1,4 +1,6 @@
 const { google } = require('googleapis');
+const { resolveSheetId } = require('./_user');
+
 
 // v28 stats endpoint — one batchGet, everything the stats page needs.
 // Month grid columns (0-based within A1:X47):
@@ -31,7 +33,7 @@ module.exports = async (req, res) => {
       scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly']
     });
     const sheets = google.sheets({ version: 'v4', auth });
-    const sheetId = process.env.GOOGLE_SHEET_ID;
+    const sheetId = await resolveSheetId(req);
 
     const ranges = MONTHS.map(m => `'${m}'!A1:X47`);
     ranges.push("'⚙️ Control Panel'!E7:H20");
