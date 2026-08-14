@@ -19,18 +19,37 @@
   const WD = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 
   const css = `
-  #stx-panel{position:fixed;inset:0;background:#08080C;z-index:80;
+  #stx-panel{
+    --hxP:#08080C; --hxC:#17171F; --hxPage:#0D0D12;
+    --hxB:rgba(255,255,255,0.055); --hxB2:rgba(255,255,255,0.05);
+    --hxLine:rgba(255,255,255,0.04); --hxLine2:rgba(255,255,255,0.07);
+    --hxTrack:rgba(255,255,255,0.045); --hxTrack2:rgba(255,255,255,0.055); --hxAvg:rgba(255,255,255,0.13);
+    --hxTile:rgba(255,255,255,0.015); --hxArc:rgba(255,255,255,0.06);
+    --hxT1:#F4F3F9; --hxT1b:#E8E7F0; --hxT1c:#C9C7D6; --hxT2:#8A879B;
+    --hxT3:#6E6B80; --hxT4:#4F4C60; --hxT5:#5E5B70; --hxFoot:#3F3D4D;
+    --hxYr0:#191921; --hxYrF:#101016;
+    position:fixed;inset:0;background:var(--hxP);z-index:80;
     transform:translateX(100%);transition:transform .28s ease;overflow-y:auto;
     padding:22px 14px 50px 14px;-webkit-overflow-scrolling:touch;
-    font-family:Manrope,system-ui,-apple-system,sans-serif;color:#E8E7F0}
+    font-family:Manrope,system-ui,-apple-system,sans-serif;color:var(--hxT1b)}
+  html.light #stx-panel{
+    --hxP:var(--bg-page,#F2F1F7); --hxC:var(--bg-card,#FFFFFF); --hxPage:var(--bg-card,#FFFFFF);
+    --hxB:rgba(24,20,50,0.10); --hxB2:rgba(24,20,50,0.08);
+    --hxLine:rgba(24,20,50,0.06); --hxLine2:rgba(24,20,50,0.10);
+    --hxTrack:rgba(24,20,50,0.07); --hxTrack2:rgba(24,20,50,0.08); --hxAvg:rgba(24,20,50,0.22);
+    --hxTile:rgba(24,20,50,0.03); --hxArc:rgba(24,20,50,0.08);
+    --hxT1:var(--text-primary,#1A1826); --hxT1b:var(--text-primary,#241F38); --hxT1c:#3A3550;
+    --hxT2:var(--text-secondary,#5A5770); --hxT3:#6E6B84; --hxT4:#8A87A0; --hxT5:#7A7790; --hxFoot:#A8A5BC;
+    --hxYr0:#E9E7F1; --hxYrF:#F2F0F8}
   #stx-panel.open{transform:translateX(0)}
-  .hsx-page{max-width:560px;margin:0 auto;background:#0D0D12;border:1px solid rgba(255,255,255,0.05);
+  .hsx-page{max-width:560px;margin:0 auto;background:var(--hxPage);border:1px solid var(--hxB2);
     border-radius:22px;padding:20px;box-sizing:border-box;box-shadow:0 40px 90px -40px rgba(0,0,0,0.9)}
-  .hsx-card{background:#17171F;border:1px solid rgba(255,255,255,0.055);border-radius:16px;padding:18px;margin-top:14px}
-  .hsx-k{font:700 10px/1 Manrope;letter-spacing:0.18em;color:#6E6B80}
-  .hsx-k2{font:600 9.5px/1 Manrope;letter-spacing:0.12em;color:#4F4C60}
+  .hsx-card{background:var(--hxC);border:1px solid var(--hxB);border-radius:16px;padding:18px;margin-top:14px}
+  .hsx-k{font:700 10px/1 Manrope;letter-spacing:0.18em;color:var(--hxT3)}
+  .hsx-k2{font:600 9.5px/1 Manrope;letter-spacing:0.12em;color:var(--hxT4)}
   .hsx-row{display:flex;align-items:center;justify-content:space-between;gap:12px}
-  .hsx-back{color:#8A879B;font:600 12px Manrope;cursor:pointer;padding:4px 0}
+  .hsx-back{color:var(--hxT2);font:600 12px Manrope;cursor:pointer;padding:4px 0}
+  .hsx-theme{cursor:pointer;padding:6px 13px;border-radius:999px;font:700 11px Manrope;letter-spacing:0.04em;background:var(--hxTile);border:1px solid var(--hxB);color:var(--hxT2)}
   @keyframes haloPulse{0%,100%{opacity:.5}50%{opacity:1}}
   #stx-fab{position:fixed;right:14px;bottom:14px;z-index:70;background:#7F77DD;color:#fff;
     border:none;border-radius:50%;width:44px;height:44px;cursor:pointer;
@@ -142,7 +161,7 @@
   /* ---------- render ---------- */
   function render() {
     if (!S) {
-      panel.innerHTML = '<div class="hsx-page"><div class="hsx-back">← back</div><div style="padding:30px;text-align:center;color:#6E6B80;font:600 12px Manrope">Loading…</div></div>';
+      panel.innerHTML = '<div class="hsx-page"><div class="hsx-back">← back</div><div style="padding:30px;text-align:center;color:var(--hxT3);font:600 12px Manrope">Loading…</div></div>';
       bindBack(); load().then(() => render()); return;
     }
     const now = new Date();
@@ -219,13 +238,13 @@
         <linearGradient id="hsLine" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="${PUR}"/><stop offset="1" stop-color="${LAV}"/></linearGradient>
         <filter id="hsBlur" x="-10%" y="-60%" width="120%" height="220%"><feGaussianBlur stdDeviation="6"/></filter>
       </defs>
-      ${[0.34,0.67,1].map(t => `<line x1="0" y1="${(top + t*(base-top)).toFixed(1)}" x2="${cw}" y2="${(top + t*(base-top)).toFixed(1)}" stroke="rgba(255,255,255,0.04)"/>`).join('')}
+      ${[0.34,0.67,1].map(t => `<line x1="0" y1="${(top + t*(base-top)).toFixed(1)}" x2="${cw}" y2="${(top + t*(base-top)).toFixed(1)}" stroke="var(--hxLine)"/>`).join('')}
       <path d="${momArea}" fill="url(#hsFill)"/>
       <path d="${momPath}" fill="none" stroke="url(#hsLine)" stroke-width="7" opacity="0.22" filter="url(#hsBlur)" stroke-linecap="round"/>
       <path d="${momPath}" fill="none" stroke="url(#hsLine)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
       <line x1="${pts[mi].x.toFixed(1)}" y1="${pts[mi].y.toFixed(1)}" x2="${pts[mi].x.toFixed(1)}" y2="${base}" stroke="rgba(175,169,236,0.22)" stroke-dasharray="2 3"/>
       <circle cx="${pts[mi].x.toFixed(1)}" cy="${pts[mi].y.toFixed(1)}" r="12" fill="rgba(175,169,236,0.14)" style="animation:haloPulse 2.8s ease-in-out infinite"/>
-      <circle cx="${pts[mi].x.toFixed(1)}" cy="${pts[mi].y.toFixed(1)}" r="5.4" fill="#0D0D12" stroke="${LAV}" stroke-width="2.4"/>
+      <circle cx="${pts[mi].x.toFixed(1)}" cy="${pts[mi].y.toFixed(1)}" r="5.4" fill="var(--hxPage)" stroke="${LAV}" stroke-width="2.4"/>
       ${MV.map((m,i)=>`<rect data-mi="${i}" x="${(i*step).toFixed(1)}" y="0" width="${step.toFixed(1)}" height="${mh}" fill="transparent" style="cursor:pointer"/>`).join('')}
       </svg>
       <div style="display:flex;margin-top:8px">
@@ -249,20 +268,20 @@
             <circle cx="${sp[sp.length-1].x.toFixed(1)}" cy="${sp[sp.length-1].y.toFixed(1)}" r="3.4" fill="${LAV}"/>
           </svg>
           <div style="display:flex;gap:18px;margin-top:11px">
-            <div style="font:500 11px/1.5 Manrope;color:#8A879B">Best streak <span style="color:#E8E7F0;font-weight:700">${h.b} days</span></div>
-            <div style="font:500 11px/1.5 Manrope;color:#8A879B">All-time <span style="color:#E8E7F0;font-weight:700">${h.all}%</span></div>
+            <div style="font:500 11px/1.5 Manrope;color:var(--hxT2)">Best streak <span style="color:var(--hxT1b);font-weight:700">${h.b} days</span></div>
+            <div style="font:500 11px/1.5 Manrope;color:var(--hxT2)">All-time <span style="color:var(--hxT1b);font-weight:700">${h.all}%</span></div>
           </div></div>`;
       }
-      const col = h.d > 0 ? GRN : (h.d < 0 ? RED : '#6E6B80');
+      const col = h.d > 0 ? GRN : (h.d < 0 ? RED : 'var(--hxT3)');
       const dot = h.p >= 75 ? 'rgba(151,196,89,0.85)' : (h.p >= 55 ? 'rgba(250,199,117,0.8)' : 'rgba(240,149,149,0.8)');
-      return `<div style="border-bottom:1px solid rgba(255,255,255,0.045)">
+      return `<div style="border-bottom:1px solid var(--hxB2)">
         <div data-open="${i}" style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:15px 0;cursor:pointer">
           <div style="display:flex;align-items:center;gap:9px;min-width:0">
             <div style="width:5px;height:5px;border-radius:999px;flex:none;background:${dot}"></div>
-            <div style="font:600 13.5px/1.4 Manrope;color:#E8E7F0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${h.n}</div>
+            <div style="font:600 13.5px/1.4 Manrope;color:var(--hxT1b);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${h.n}</div>
           </div>
           <div style="display:flex;align-items:center;gap:11px;flex:none">
-            <div style="font:700 13.5px/1 Manrope;color:#C9C7D6;font-variant-numeric:tabular-nums">${h.p}%</div>
+            <div style="font:700 13.5px/1 Manrope;color:var(--hxT1c);font-variant-numeric:tabular-nums">${h.p}%</div>
             <div style="font:700 11.5px/1 Manrope;color:${col};min-width:34px;text-align:right">${h.d >= 0 ? '↑ ' : '↓ '}${Math.abs(h.d)}</div>
           </div>
         </div>${spark}</div>`;
@@ -291,7 +310,7 @@
     const gap = 1.6;
     const cell = (cw + gap) / 53 - gap;
     const jan1wd = (new Date(yr, 0, 1).getDay() + 6) % 7;
-    const lv = ['#191921','rgba(151,196,89,0.20)','rgba(151,196,89,0.38)','rgba(151,196,89,0.62)',GRN];
+    const lv = ['var(--hxYr0)','rgba(151,196,89,0.20)','rgba(151,196,89,0.38)','rgba(151,196,89,0.62)',GRN];
     const yrCells = [];
     for (let i = 0; i < 366; i++) {
       const dt = new Date(yr, 0, 1 + i);
@@ -300,7 +319,7 @@
       const k = jan1wd + i, colI = Math.floor(k / 7);
       const iso = yr + '-' + String(dt.getMonth()+1).padStart(2,'0') + '-' + String(dt.getDate()).padStart(2,'0');
       const future = dt > now;
-      let fill = '#101016';
+      let fill = 'var(--hxYrF)';
       if (!future) {
         const p = dayMap[iso];
         const lvl = p == null || p === 0 ? 0 : (p <= 0.34 ? 1 : (p <= 0.67 ? 2 : (p < 0.999 ? 3 : 4)));
@@ -311,7 +330,7 @@
     const yrH = (7 * (cell + gap) - gap).toFixed(1);
     const selDay = UI.day != null ? yrCells.find(c => c.iso === UI.day) : null;
     const yrNote = selDay ? selDay.iso + ' · ' + Math.round((selDay.p || 0) * 100) + '%' : (S.daily || []).length + ' days logged';
-    const yrCol = selDay ? ((selDay.p || 0) >= 0.8 ? GRN : ((selDay.p || 0) >= 0.5 ? '#C9C7D6' : RED)) : '#8A879B';
+    const yrCol = selDay ? ((selDay.p || 0) >= 0.8 ? GRN : ((selDay.p || 0) >= 0.5 ? 'var(--hxT1c)' : RED)) : 'var(--hxT2)';
 
     /* leaderboard */
     const badge = [
@@ -323,37 +342,40 @@
       .sort((a, b) => b.all - a.all)
       .map((h, i) => Object.assign(h, { rank: i + 1,
         bg: badge[i] ? badge[i].bg : 'transparent',
-        fg: badge[i] ? badge[i].fg : '#5E5B70',
-        bd: badge[i] ? badge[i].bd : 'rgba(255,255,255,0.08)',
-        pc: i === 0 ? GLD : '#C9C7D6' }));
+        fg: badge[i] ? badge[i].fg : 'var(--hxT5)',
+        bd: badge[i] ? badge[i].bd : 'var(--hxB)',
+        pc: i === 0 ? GLD : 'var(--hxT1c)' }));
 
     const monthsIn = curM + 1;
     const scrollY = panel.scrollTop;
 
     panel.innerHTML = `
     <div class="hsx-page">
-      <div style="display:flex;flex-direction:column;gap:7px;padding:2px 2px 18px">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:2px 2px 18px">
+      <div style="display:flex;flex-direction:column;gap:7px">
         <div class="hsx-back">← back</div>
         <div style="display:flex;align-items:center;gap:9px">${stxIcon(20, PUR)}
-          <div style="font:800 25px/1 Manrope;letter-spacing:-0.03em;color:#F4F3F9">${monthsIn === 1 ? 'First month in' : monthsIn + ' months in'}</div>
+          <div style="font:800 25px/1 Manrope;letter-spacing:-0.03em;color:var(--hxT1)">${monthsIn === 1 ? 'First month in' : monthsIn + ' months in'}</div>
         </div>
-        <div style="font:500 12px/1.4 Manrope;color:#8A879B">Jan 1 – ${MON[curM]} ${now.getDate()}, ${yr} · ${H.length} habits</div>
+        <div style="font:500 12px/1.4 Manrope;color:var(--hxT2)">Jan 1 – ${MON[curM]} ${now.getDate()}, ${yr} · ${H.length} habits</div>
+      </div>
+      <div class="hsx-theme" id="hsx-theme">${document.documentElement.classList.contains('light') ? '☾ Dark' : '☀ Light'}</div>
       </div>
 
       <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px">
-        ${tiles.map(t => `<div style="background:rgba(255,255,255,0.015);border:1px solid rgba(255,255,255,0.05);border-radius:14px;padding:15px 14px;display:flex;flex-direction:column;gap:7px">
+        ${tiles.map(t => `<div style="background:var(--hxTile);border:1px solid var(--hxB2);border-radius:14px;padding:15px 14px;display:flex;flex-direction:column;gap:7px">
           <div style="font:800 23px/1 Manrope;letter-spacing:-0.03em;color:${t.c}">${t.v}</div>
-          <div style="font:700 9px/1.3 Manrope;letter-spacing:0.14em;color:#5E5B70">${t.l}</div>
+          <div style="font:700 9px/1.3 Manrope;letter-spacing:0.14em;color:var(--hxT5)">${t.l}</div>
         </div>`).join('')}
       </div>
 
       <div class="hsx-card" style="padding:18px 18px 14px">
         <div class="hsx-row"><div class="hsx-k">MOMENTUM</div><div class="hsx-k2">MONTHLY COMPLETION</div></div>
         <div style="display:flex;align-items:flex-end;gap:10px;margin:16px 0 0">
-          <div style="font:800 46px/0.9 Manrope;letter-spacing:-0.04em;color:#F4F3F9">${MV[mi]}<span style="font:700 19px Manrope;color:#7C7990">%</span></div>
+          <div style="font:800 46px/0.9 Manrope;letter-spacing:-0.04em;color:var(--hxT1)">${MV[mi]}<span style="font:700 19px Manrope;color:var(--hxT2)">%</span></div>
           <div style="display:flex;align-items:center;gap:5px;padding:5px 10px;border-radius:999px;font:700 11.5px Manrope;background:${dl >= 0 ? 'rgba(151,196,89,0.12)' : 'rgba(240,149,149,0.11)'};color:${dl >= 0 ? GRN : RED};margin-bottom:7px">${dl >= 0 ? '↑ ' : '↓ '}${Math.abs(dl)} pts</div>
         </div>
-        <div style="font:500 12px/1 Manrope;color:#8A879B;margin:9px 0 10px">${hSub}</div>
+        <div style="font:500 12px/1 Manrope;color:var(--hxT2);margin:9px 0 10px">${hSub}</div>
         ${momSvg}
       </div>
 
@@ -368,24 +390,24 @@
           <div style="position:relative;width:146px;height:132px;flex:none">
             <svg width="146" height="132" viewBox="0 0 146 132" style="display:block;overflow:visible">
               <defs><linearGradient id="hsArc" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="${PUR}"/><stop offset="1" stop-color="${LAV}"/></linearGradient></defs>
-              <path d="${arcPath(CX, CY, R, A0, A0 + SWP)}" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="10" stroke-linecap="round"/>
+              <path d="${arcPath(CX, CY, R, A0, A0 + SWP)}" fill="none" stroke="var(--hxArc)" stroke-width="10" stroke-linecap="round"/>
               <path d="${arcPath(CX, CY, R, A0, A0 + SWP * Math.min(100, score) / 100)}" fill="none" stroke="url(#hsArc)" stroke-width="10" stroke-linecap="round"/>
               <circle cx="${tip.x.toFixed(2)}" cy="${tip.y.toFixed(2)}" r="9" fill="rgba(175,169,236,0.16)"/>
               <circle cx="${tip.x.toFixed(2)}" cy="${tip.y.toFixed(2)}" r="3.4" fill="#DAD6FA"/>
             </svg>
             <div style="position:absolute;left:0;top:0;width:146px;height:124px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;pointer-events:none">
-              <div style="font:800 34px/1 Manrope;letter-spacing:-0.04em;color:#F4F3F9">${score}</div>
-              <div style="font:700 9px/1 Manrope;letter-spacing:0.18em;color:#6E6B80">ON PLAN</div>
+              <div style="font:800 34px/1 Manrope;letter-spacing:-0.04em;color:var(--hxT1)">${score}</div>
+              <div style="font:700 9px/1 Manrope;letter-spacing:0.18em;color:var(--hxT3)">ON PLAN</div>
             </div>
           </div>
           <div style="display:flex;flex-direction:column;gap:14px;flex:1 1 180px;min-width:0">
             <div style="display:flex;flex-direction:column;gap:6px">
-              <div style="display:flex;align-items:baseline;justify-content:space-between"><div style="font:600 11.5px Manrope;color:#8A879B">Weekdays</div><div style="font:800 15px Manrope;color:#E8E7F0">${wkday}%</div></div>
-              <div style="height:5px;border-radius:999px;background:rgba(255,255,255,0.055);overflow:hidden"><div style="width:${wkday}%;height:100%;border-radius:999px;background:${GRN}"></div></div>
+              <div style="display:flex;align-items:baseline;justify-content:space-between"><div style="font:600 11.5px Manrope;color:var(--hxT2)">Weekdays</div><div style="font:800 15px Manrope;color:var(--hxT1b)">${wkday}%</div></div>
+              <div style="height:5px;border-radius:999px;background:var(--hxTrack2);overflow:hidden"><div style="width:${wkday}%;height:100%;border-radius:999px;background:${GRN}"></div></div>
             </div>
             <div style="display:flex;flex-direction:column;gap:6px">
-              <div style="display:flex;align-items:baseline;justify-content:space-between"><div style="font:600 11.5px Manrope;color:#8A879B">Weekends</div><div style="font:800 15px Manrope;color:#E8E7F0">${wkend}%</div></div>
-              <div style="height:5px;border-radius:999px;background:rgba(255,255,255,0.055);overflow:hidden"><div style="width:${wkend}%;height:100%;border-radius:999px;background:${RED}"></div></div>
+              <div style="display:flex;align-items:baseline;justify-content:space-between"><div style="font:600 11.5px Manrope;color:var(--hxT2)">Weekends</div><div style="font:800 15px Manrope;color:var(--hxT1b)">${wkend}%</div></div>
+              <div style="height:5px;border-radius:999px;background:var(--hxTrack2);overflow:hidden"><div style="width:${wkend}%;height:100%;border-radius:999px;background:${RED}"></div></div>
             </div>
             <div style="font:600 11px/1.4 Manrope;color:${wkday - wkend > 0 ? RED : GRN};white-space:nowrap">${wkday - wkend > 0 ? 'Weekend dip · ' + (wkday - wkend) + ' pts' : 'Weekend lift · ' + (wkend - wkday) + ' pts'}</div>
           </div>
@@ -397,30 +419,30 @@
           <div style="padding:5px 10px;border-radius:999px;background:${sel === bestD ? 'rgba(250,199,117,0.12)' : 'rgba(175,169,236,0.12)'};font:700 11px Manrope;color:${sel === bestD ? GLD : LAV}">${UI.pd == null ? 'Best · ' : ''}${WD[sel]} ${pd[sel]}%</div>
         </div>
         <div style="position:relative;height:13px;margin-top:16px">
-          <div style="position:absolute;left:${((tX + tW * score / 100) / cw * 100).toFixed(1)}%;top:0;transform:translateX(-50%);font:700 8.5px/1 Manrope;letter-spacing:0.14em;color:#4F4C60;white-space:nowrap">AVG ${score}</div>
+          <div style="position:absolute;left:${((tX + tW * score / 100) / cw * 100).toFixed(1)}%;top:0;transform:translateX(-50%);font:700 8.5px/1 Manrope;letter-spacing:0.14em;color:var(--hxT4);white-space:nowrap">AVG ${score}</div>
         </div>
         <div style="position:relative">
           <svg width="100%" height="${pdH}" viewBox="0 0 ${cw} ${pdH}" preserveAspectRatio="none" style="display:block">
-            <line x1="${(tX + tW * score / 100).toFixed(1)}" y1="0" x2="${(tX + tW * score / 100).toFixed(1)}" y2="${pdH}" stroke="rgba(255,255,255,0.13)" stroke-dasharray="2 4"/>
+            <line x1="${(tX + tW * score / 100).toFixed(1)}" y1="0" x2="${(tX + tW * score / 100).toFixed(1)}" y2="${pdH}" stroke="var(--hxAvg)" stroke-dasharray="2 4"/>
             ${lanes.map(o => `<g data-pd="${o.i}" style="cursor:pointer">
               <rect x="0" y="${o.y - 10}" width="${cw}" height="32" fill="transparent"/>
-              <rect x="${tX}" y="${o.y}" width="${tW.toFixed(1)}" height="12" rx="6" fill="rgba(255,255,255,0.045)"/>
+              <rect x="${tX}" y="${o.y}" width="${tW.toFixed(1)}" height="12" rx="6" fill="var(--hxTrack)"/>
               <rect x="${tX}" y="${o.y}" width="${(tW * o.val / 100).toFixed(1)}" height="12" rx="6" fill="${o.isB ? GLD : (o.isS ? LAV : 'rgba(127,119,221,0.40)')}"/>
             </g>`).join('')}
           </svg>
-          ${lanes.map(o => `<div style="position:absolute;left:0;top:${((o.y + 6) / pdH * 100).toFixed(1)}%;transform:translateY(-50%);font:700 11px/1 Manrope;letter-spacing:0.06em;color:${o.isB || o.isS ? '#C9C7D6' : '#5E5B70'};pointer-events:none">${WD[o.i].toUpperCase()}</div>`).join('')}
-          ${lanes.map(o => `<div style="position:absolute;right:0;top:${((o.y + 6) / pdH * 100).toFixed(1)}%;transform:translateY(-50%);font:800 12px/1 Manrope;color:${o.isB ? GLD : (o.isS ? LAV : '#8A879B')};pointer-events:none">${o.val}%</div>`).join('')}
+          ${lanes.map(o => `<div style="position:absolute;left:0;top:${((o.y + 6) / pdH * 100).toFixed(1)}%;transform:translateY(-50%);font:700 11px/1 Manrope;letter-spacing:0.06em;color:${o.isB || o.isS ? 'var(--hxT1c)' : 'var(--hxT5)'};pointer-events:none">${WD[o.i].toUpperCase()}</div>`).join('')}
+          ${lanes.map(o => `<div style="position:absolute;right:0;top:${((o.y + 6) / pdH * 100).toFixed(1)}%;transform:translateY(-50%);font:800 12px/1 Manrope;color:${o.isB ? GLD : (o.isS ? LAV : 'var(--hxT2)')};pointer-events:none">${o.val}%</div>`).join('')}
         </div>
       </div>
 
       <div class="hsx-card">
         <div class="hsx-row"><div class="hsx-k">WHERE HABITS BREAK</div>
-          <div style="font:600 11px/1 Manrope;color:${UI.sb == null ? '#8A879B' : LAV}">${UI.sb == null ? (H[weak] ? 'Lowest line: ' + H[weak].n : '') : H[UI.sb].n + ' · low ' + Math.min.apply(null, H[UI.sb].row) + '%'}</div>
+          <div style="font:600 11px/1 Manrope;color:${UI.sb == null ? 'var(--hxT2)' : LAV}">${UI.sb == null ? (H[weak] ? 'Lowest line: ' + H[weak].n : '') : H[UI.sb].n + ' · low ' + Math.min.apply(null, H[UI.sb].row) + '%'}</div>
         </div>
         <div style="position:relative;margin-top:14px">
           <svg width="100%" height="164" viewBox="0 0 ${cw} 164" preserveAspectRatio="none" style="display:block">
             <rect x="${(px5 + 4 * sx5 - sx5 * 0.5).toFixed(1)}" y="0" width="${(sx5 * 2).toFixed(1)}" height="150" rx="10" fill="rgba(240,149,149,0.055)"/>
-            <line x1="0" y1="${y5(score).toFixed(1)}" x2="${cw}" y2="${y5(score).toFixed(1)}" stroke="rgba(255,255,255,0.07)" stroke-dasharray="2 4"/>
+            <line x1="0" y1="${y5(score).toFixed(1)}" x2="${cw}" y2="${y5(score).toFixed(1)}" stroke="var(--hxLine2)" stroke-dasharray="2 4"/>
             ${H.map((h, i) => {
               const p = smooth(h.row.map((v, j) => ({ x: px5 + j * sx5, y: y5(v) })));
               const on = i === focusIdx;
@@ -428,15 +450,15 @@
             }).join('')}
             ${H[focusIdx] ? H[focusIdx].row.map((v, j) => `<circle cx="${(px5 + j * sx5).toFixed(1)}" cy="${y5(v).toFixed(1)}" r="3.2" fill="${UI.sb == null ? RED : LAV}"/>`).join('') : ''}
           </svg>
-          <div style="position:absolute;left:0;top:${(y5(score) / 164 * 100).toFixed(1)}%;transform:translateY(-50%);font:700 8px/1 Manrope;letter-spacing:0.14em;color:#4F4C60;background:#17171F;padding-right:5px">AVG</div>
+          <div style="position:absolute;left:0;top:${(y5(score) / 164 * 100).toFixed(1)}%;transform:translateY(-50%);font:700 8px/1 Manrope;letter-spacing:0.14em;color:var(--hxT4);background:var(--hxC);padding-right:5px">AVG</div>
         </div>
         <div style="display:flex">
-          ${WD.map((w, i) => `<div style="flex:1 1 0;text-align:center;font:700 10px/1 Manrope;letter-spacing:0.06em;color:${i >= 4 && i <= 5 ? '#8A879B' : '#4F4C60'}">${w.slice(0,2).toUpperCase()}</div>`).join('')}
+          ${WD.map((w, i) => `<div style="flex:1 1 0;text-align:center;font:700 10px/1 Manrope;letter-spacing:0.06em;color:${i >= 4 && i <= 5 ? 'var(--hxT2)' : '#4F4C60'}">${w.slice(0,2).toUpperCase()}</div>`).join('')}
         </div>
         <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:16px">
           ${H.map((h, i) => {
             const on = i === focusIdx;
-            return `<div data-sb="${i}" style="cursor:pointer;padding:6px 10px;border-radius:999px;font:600 10.5px/1 Manrope;background:${on ? 'rgba(175,169,236,0.14)' : 'transparent'};color:${on ? LAV : '#6E6B80'};border:1px solid ${on ? 'rgba(175,169,236,0.35)' : 'rgba(255,255,255,0.07)'}">${h.n}</div>`;
+            return `<div data-sb="${i}" style="cursor:pointer;padding:6px 10px;border-radius:999px;font:600 10.5px/1 Manrope;background:${on ? 'rgba(175,169,236,0.14)' : 'transparent'};color:${on ? LAV : 'var(--hxT3)'};border:1px solid ${on ? 'rgba(175,169,236,0.35)' : 'var(--hxB)'}">${h.n}</div>`;
           }).join('')}
         </div>
       </div>
@@ -444,7 +466,7 @@
       <div class="hsx-card">
         <div class="hsx-row"><div class="hsx-k">YOUR YEAR</div><div style="font:600 11px/1 Manrope;color:${yrCol}">${yrNote}</div></div>
         <div style="display:flex;margin:16px 0 6px">
-          ${MON.map(m => `<div style="flex:1 1 0;font:700 9px Manrope;letter-spacing:0.1em;color:#4F4C60">${m[0]}</div>`).join('')}
+          ${MON.map(m => `<div style="flex:1 1 0;font:700 9px Manrope;letter-spacing:0.1em;color:var(--hxT4)">${m[0]}</div>`).join('')}
         </div>
         <svg width="100%" height="${yrH}" viewBox="0 0 ${cw} ${yrH}" preserveAspectRatio="none" style="display:block">
           ${yrCells.map(c => `<rect data-day="${c.future ? '' : c.iso}" x="${c.x}" y="${c.y}" width="${cell.toFixed(2)}" height="${cell.toFixed(2)}" rx="${(cell * 0.28).toFixed(2)}" fill="${c.fill}"${c.future ? '' : ' style="cursor:pointer"'}/>`).join('')}
@@ -454,17 +476,17 @@
       <div class="hsx-card" style="padding:18px 18px 10px">
         <div class="hsx-row"><div class="hsx-k">LEADERBOARD</div><div class="hsx-k2">ALL TIME</div></div>
         <div style="display:flex;flex-direction:column;margin-top:4px">
-          ${board.map(b => `<div style="display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid rgba(255,255,255,0.045)">
+          ${board.map(b => `<div style="display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid var(--hxB2)">
             <div style="width:23px;height:23px;border-radius:999px;flex:none;display:flex;align-items:center;justify-content:center;font:800 11px Manrope;background:${b.bg};color:${b.fg};border:1px solid ${b.bd}">${b.rank}</div>
-            <div style="font:600 13.5px/1.4 Manrope;color:#E8E7F0;flex:1 1 0;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${b.n}</div>
-            <div style="font:500 11px/1 Manrope;color:#6E6B80;flex:none">${b.b}d best</div>
+            <div style="font:600 13.5px/1.4 Manrope;color:var(--hxT1b);flex:1 1 0;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${b.n}</div>
+            <div style="font:500 11px/1 Manrope;color:var(--hxT3);flex:none">${b.b}d best</div>
             <div style="font:800 14px/1 Manrope;color:${b.pc};flex:none;font-variant-numeric:tabular-nums">${b.all}%</div>
           </div>`).join('')}
         </div>
       </div>
 
       <div style="margin-top:14px;background:rgba(151,196,89,0.06);border:1px solid rgba(151,196,89,0.25);border-radius:12px;padding:10px;text-align:center;font:600 11px Manrope;color:${GRN}">Full honest breakdown → 📈 Insights in your sheet</div>
-      <div style="text-align:center;font:500 10.5px/1.6 Manrope;color:#3F3D4D;padding:18px 0 4px">${(S.daily || []).length} days tracked · updated today</div>
+      <div style="text-align:center;font:500 10.5px/1.6 Manrope;color:var(--hxFoot);padding:18px 0 4px">${(S.daily || []).length} days tracked · updated today</div>
     </div>`;
 
     bindBack();
@@ -475,7 +497,18 @@
     panel.querySelectorAll('[data-day]').forEach(el => el.addEventListener('click', () => { if (el.dataset.day) { UI.day = el.dataset.day; render(); } }));
     panel.scrollTop = scrollY;
   }
-  function bindBack() { const b = $('.hsx-back', panel); if (b) b.onclick = closePanel; }
+  function bindBack() {
+    const b = $('.hsx-back', panel); if (b) b.onclick = closePanel;
+    const t = $('#hsx-theme', panel);
+    if (t) t.onclick = () => {
+      if (typeof window.toggleTheme === 'function') { window.toggleTheme(); }
+      else {
+        const isLight = document.documentElement.classList.toggle('light');
+        try { localStorage.setItem('hbt-theme', isLight ? 'light' : 'dark'); } catch (e) {}
+      }
+      render();
+    };
+  }
 
   async function load() {
     try {
