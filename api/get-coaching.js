@@ -1,4 +1,6 @@
 const { google } = require('googleapis');
+const { resolveSheetId } = require('./_user');
+
 
 // v28: the coaching instruction is user-editable in
 // Control Panel B26 ("AI COACHING PROMPT — Used by the web app").
@@ -31,7 +33,7 @@ module.exports = async (req, res) => {
       });
       const sheets = google.sheets({ version: 'v4', auth });
       const cellRes = await sheets.spreadsheets.values.get({
-        spreadsheetId: process.env.GOOGLE_SHEET_ID,
+        spreadsheetId: await resolveSheetId(req),
         range: PROMPT_CELL
       });
       const cellVal = cellRes.data.values && cellRes.data.values[0] && cellRes.data.values[0][0];
