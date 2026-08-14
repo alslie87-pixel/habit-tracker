@@ -1,4 +1,6 @@
 const { google } = require('googleapis');
+const { resolveSheetId } = require('./_user');
+
 
 // ── v28 SHEET STRUCTURE ──────────────────────────────────────
 // Control Panel: E=Type, F=Habit name, G=Status, H=Note (rows 7-20)
@@ -25,7 +27,7 @@ module.exports = async (req, res) => {
       scopes: ['https://www.googleapis.com/auth/spreadsheets']
     });
     const sheets = google.sheets({ version: 'v4', auth });
-    const sheetId = process.env.GOOGLE_SHEET_ID;
+    const sheetId = await resolveSheetId(req);
 
     const { action, type, name, newName, note } = req.body;
     if (!action || !type) {
