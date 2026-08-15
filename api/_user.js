@@ -24,11 +24,14 @@ async function resolveSheetId(req) {
       scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly']
     });
     const sheets = google.sheets({ version: 'v4', auth });
-    const resp = await sheets.spreadsheets.values.get({
-      spreadsheetId: customersId,
-      range: 'A1:H200'
-    });
-    const rows = resp.data.values || [];
+    let rows = [];
+    for (const range of ["'Customers'!A1:H400", 'A1:H400']) {
+      try {
+        const resp = await sheets.spreadsheets.values.get({ spreadsheetId: customersId, range });
+        rows = resp.data.values || [];
+        if (rows.length) break;
+      } catch (e) { /* tab name miss — try next */ }
+    }
     for (const row of rows) {
       const name = (row[0] || '').toString().trim().toLowerCase();
       if (name !== user) continue;
